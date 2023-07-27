@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".VerProducto"
+    android:fitsSystemWindows="true">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/vp_topbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardElevation="5dp">
+
+        <ImageButton
+            android:id="@+id/vp_btnRegresar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:padding="5dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_baseline_arrow_back_24" />
+    </androidx.cardview.widget.CardView>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/vp_topbar">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:id="@+id/vp_ImagenProducto"
+                    android:layout_width="280dp"
+                    android:layout_height="280dp"
+                    android:layout_gravity="center"
+                    android:layout_margin="10dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/default_image" />
+
+                <LinearLayout
+                    android:id="@+id/seccionUnidades"
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <ImageButton
+                        android:id="@+id/vp_btnUnidad"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:layout_marginRight="10dp"
+                        android:background="@drawable/estilo_boton2"
+                        android:elevation="5dp"
+                        android:foreground="?android:attr/selectableItemBackgroundBorderless"
+                        android:padding="5dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/unidad" />
+
+                    <ImageButton
+                        android:id="@+id/vp_btnPaquete"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:layout_marginLeft="10dp"
+                        android:background="@drawable/estilo_boton1"
+                        android:elevation="5dp"
+                        android:foreground="?android:attr/selectableItemBackgroundBorderless"
+                        android:padding="15dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/caja" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:padding="5dp">
+
+                    <TextView
+                        android:id="@+id/vp_nombreProducto"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/roboto"
+                        android:text="TextView"
+                        android:textAlignment="center"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/vp_txtUnidad"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="TextView"
+                            android:textColor="@color/primary"
+                            android:textStyle="bold"
+                            android:textAlignment="center"
+                            android:textSize="22sp" />
+
+                        <TextView
+                            android:id="@+id/vp_txtPrecio"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:text="TextView"
+                            android:textAlignment="center"
+                            android:textSize="24sp"
+                            android:textStyle="bold"
+                            android:visibility="gone"/>
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:padding="5dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="4"
+                            android:text="Cantidad"
+                            android:textAlignment="center"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"/>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="50dp"
+                            android:layout_weight="3"
+                            android:layout_gravity="center_vertical"
+                            android:background="@drawable/borde_gris"
+                            android:orientation="horizontal">
+
+                            <Button
+                                android:id="@+id/vp_btnDisminuir"
+                                android:layout_width="match_parent"
+                                android:layout_height="50dp"
+                                android:layout_weight="1"
+                                android:background="?android:attr/selectableItemBackgroundBorderless"
+                                android:text="-"
+                                android:textColor="@color/black" />
+
+                            <EditText
+                                android:id="@+id/vp_txtCantidad"
+                                android:layout_width="match_parent"
+                                android:layout_height="50dp"
+                                android:layout_weight="1"
+                                android:layout_gravity="center"
+                                android:inputType="number"
+                                android:text="1"
+                                android:textAlignment="center"/>
+
+                            <Button
+                                android:id="@+id/vp_btnAumentar"
+                                android:layout_width="match_parent"
+                                android:layout_height="50dp"
+                                android:layout_weight="1"
+                                android:background="?android:attr/selectableItemBackgroundBorderless"
+                                android:text="+"
+                                android:textColor="@color/black" />
+                        </LinearLayout>
+
+                        <Button
+                            android:id="@+id/vp_btnComprar"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="3"
+                            android:layout_gravity="center"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="10dp"
+                            android:inputType="textCapWords"
+                            android:text="@string/agregar"
+                            android:textStyle="bold"
+                            android:background="@drawable/estilo_boton1"
+                            android:foreground="?android:attr/selectableItemBackgroundBorderless"/>
+                    </LinearLayout>
+
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>

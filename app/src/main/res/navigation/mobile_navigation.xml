@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@id/nav_inicio">
+
+    <fragment
+        android:id="@+id/nav_inicio"
+        android:name="com.csj.csjmarket.ui.vistas.inicio"
+        android:label="@string/menu_home"
+        tools:layout="@layout/fragment_inicio">
+        <action
+            android:id="@+id/action_nav_home_to_nav_voucher"
+            app:destination="@id/nav_voucher" />
+        <action
+            android:id="@+id/action_nav_home_to_nav_profile"
+            app:destination="@id/nav_profile" />
+        <argument
+            android:name="listaPrecio"
+            app:argType="integer" />
+        <action
+            android:id="@+id/action_nav_inicio_to_politicasPrivacidad"
+            app:destination="@id/nav_politicas" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_voucher"
+        android:name="com.csj.csjmarket.ui.vistas.pedidos"
+        android:label="@string/menu_voucher"
+        tools:layout="@layout/fragment_pedidos">
+        <action
+            android:id="@+id/action_nav_voucher_to_nav_home"
+            app:destination="@id/nav_inicio" />
+        <argument
+            android:name="id"
+            app:argType="string"
+            app:nullable="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_profile"
+        android:name="com.csj.csjmarket.ui.vistas.perfil"
+        android:label="@string/menu_profile"
+        tools:layout="@layout/fragment_perfil">
+        <action
+            android:id="@+id/action_nav_profile_to_nav_home"
+            app:destination="@id/nav_inicio" />
+        <argument
+            android:name="correo"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="nombre"
+            app:argType="string"
+            app:nullable="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_politicas"
+        android:name="com.csj.csjmarket.ui.vistas.politicasPrivacidad"
+        android:label="@string/politicas"
+        tools:layout="@layout/fragment_politicas_privacidad" >
+        <action
+            android:id="@+id/action_politicasPrivacidad_to_nav_inicio"
+            app:destination="@id/nav_inicio" />
+    </fragment>
+</navigation>

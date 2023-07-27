@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/enlazar_contenedorRelativo"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="15dp"
+    tools:context=".EnlazarCliente"
+    android:fitsSystemWindows="true">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="NUEVO CLIENTE"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:textSize="20sp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                android:text="Por favor asegurece de ingresar sus datos correctamente."
+                android:textAlignment="center"
+                android:textSize="14sp"/>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                app:errorTextAppearance="@style/Widget.Design.TextInputLayout"
+                app:errorTextColor="@android:color/holo_red_dark">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/enlazar_txtCorreo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/txtCorreo"
+                    android:imeOptions="actionNext"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:textAlignment="center"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:text="Tipo de Documento"
+                android:textAlignment="center"
+                android:textSize="12sp" />
+
+            <Spinner
+                android:id="@+id/enlazar_spnTipoDocumento"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:background="@drawable/estilo_boton_google"
+                android:entries="@array/lenguajes"
+                android:spinnerMode="dropdown"
+                android:textAlignment="center" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/enlazar_tilNumeroDocumento"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:layout_marginTop="15dp"
+                app:errorTextAppearance="@style/Widget.Design.TextInputLayout"
+                app:errorTextColor="@android:color/holo_red_dark">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/enlazar_txtNumeroDocumento"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/txtNumeroDocumento"
+                    android:inputType="number"
+                    android:textAlignment="center"
+                    android:imeOptions="actionNext" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <LinearLayout
+                android:id="@+id/enlazar_contenedorRazonSocial"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                android:visibility="gone">
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/enlazar_tilNombre"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:errorTextAppearance="@style/Widget.Design.TextInputLayout"
+                    app:errorTextColor="@android:color/holo_red_dark">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/enlazar_txtNombre"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/txtNombre"
+                        android:inputType="textCapCharacters"
+                        android:imeOptions="actionNext"
+                        android:textAlignment="center"
+                        android:maxLines="2"/>
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/enlazar_contenedorNombreCliente"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="15dp">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/enlazar_tilApellidoPaterno"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="5dp"
+                    android:layout_marginTop="15dp"
+                    app:errorTextAppearance="@style/Widget.Design.TextInputLayout"
+                    app:errorTextColor="@android:color/holo_red_dark">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/enlazar_txtApellidoPaterno"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/txtApellidoPaterno"
+                        android:inputType="textCapCharacters"
+                        android:imeOptions="actionNext"
+                        android:textAlignment="center"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/enlazar_tilApellidoMaterno"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="15dp"
+                    app:errorTextAppearance="@style/Widget.Design.TextInputLayout"
+                    app:errorTextColor="@android:color/holo_red_dark">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/enlazar_txtApellidoMaterno"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/txtApellidoMaterno"
+                        android:inputType="textCapCharacters"
+                        android:imeOptions="actionNext"
+                        android:textAlignment="center"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/enlazar_tilNombres"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="15dp"
+                    app:errorTextAppearance="@style/Widget.Design.TextInputLayout"
+                    app:errorTextColor="@android:color/holo_red_dark">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/enlazar_txtNombres"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapCharacters"
+                        android:hint="@string/txtNombres"
+                        android:imeOptions="actionNext"
+                        android:textAlignment="center"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="15dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:text="Departamento"
+                        android:textAlignment="center"
+                        android:textSize="12sp" />
+
+                    <Spinner
+                        android:id="@+id/direccion_spnTipoDocumento"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/estilo_boton_google"
+                        android:entries="@array/departamentos"
+                        android:spinnerMode="dropdown"
+                        android:textAlignment="center" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="15dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:text="Provincia"
+                        android:textAlignment="center"
+                        android:textSize="12sp" />
+
+                    <Spinner
+                        android:id="@+id/direccion_spnProvincia"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/estilo_boton_google"
+                        android:entries="@array/departamentos"
+                        android:spinnerMode="dropdown"
+                        android:textAlignment="center" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="15dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:text="Distrito"
+                        android:textAlignment="center"
+                        android:textSize="12sp" />
+
+                    <Spinner
+                        android:id="@+id/direccion_spnDistrito"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/estilo_boton_google"
+                        android:entries="@array/departamentos"
+                        android:spinnerMode="dropdown"
+                        android:textAlignment="center" />
+                </LinearLayout>
+
+            </LinearLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/enlazar_tilDireccion"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:errorTextAppearance="@style/Widget.Design.TextInputLayout"
+                app:errorTextColor="@android:color/holo_red_dark"
+                android:layout_marginBottom="15dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/enlazar_txtDireccion"
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:hint="@string/txtDireccion"
+                    android:imeOptions="actionNext"
+                    android:inputType="textCapWords"
+                    android:maxLines="2"
+                    android:textAlignment="center" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/enlazar_tilNumeroTelefono"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:errorTextAppearance="@style/Widget.Design.TextInputLayout"
+                app:errorTextColor="@android:color/holo_red_dark"
+                android:layout_marginBottom="15dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/enlazar_txtTelefono"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/txtNumeroTelefono"
+                    android:inputType="number"
+                    android:imeOptions="actionNext"
+                    android:textAlignment="center"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/estilo_boton_google">
+
+                <Button
+                    android:id="@+id/enlazar_btnContinuar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/estilo_boton1"
+                    android:foreground="?android:attr/selectableItemBackgroundBorderless"
+                    android:inputType="textCapWords"
+                    android:textStyle="bold"
+                    android:text="Guardar" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+</RelativeLayout>

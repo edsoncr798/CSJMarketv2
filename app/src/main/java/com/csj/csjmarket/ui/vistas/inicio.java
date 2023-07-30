@@ -175,14 +175,20 @@ public class inicio extends Fragment {
                 ArrayList<MiCarrito> miCarrito = gson.fromJson(carritoString, typeS);
                 Integer numeroItems = miCarrito.size();
 
-                Animation animation = AnimationUtils.loadAnimation(binding.getRoot().getContext(), R.anim.zoom_out);
-                binding.txtCarritoItemCount.startAnimation(animation);
-                binding.txtCarritoItemCount.setVisibility(View.VISIBLE);
-                binding.txtCarritoItemCount.setText(numeroItems.toString());
+                if (numeroItems == 0){
+                    binding.txtCarritoItemCount.setVisibility(View.GONE);
+                }
+                else {
+                    Animation animation = AnimationUtils.loadAnimation(binding.getRoot().getContext(), R.anim.zoom_out);
+                    binding.txtCarritoItemCount.startAnimation(animation);
+                    binding.txtCarritoItemCount.setVisibility(View.VISIBLE);
+                    binding.txtCarritoItemCount.setText(numeroItems.toString());
+                }
             }
             else {
                 binding.txtCarritoItemCount.setVisibility(View.GONE);
             }
+
         }catch (Exception ex){
 
         }

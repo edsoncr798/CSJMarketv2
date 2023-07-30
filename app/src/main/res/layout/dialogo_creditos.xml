@@ -37,9 +37,10 @@
         android:gravity="center">
 
         <TextView
+            android:id="@+id/correo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="faustoarias1692@gmail.com"
+            android:text="fausto@ariasdev.com"
             android:textAlignment="center"
             android:textSize="16dp"
             android:linksClickable="true"

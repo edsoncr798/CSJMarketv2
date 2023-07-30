@@ -114,6 +114,20 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_settings:
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 View view = getLayoutInflater().inflate(R.layout.dialogo_creditos, null);
+                TextView correo = view.findViewById(R.id.correo);
+                correo.setOnClickListener(view1 -> {
+                    String[] recipients = {"fausto@ariasdev.com"}; // Agrega la dirección de correo del destinatario aquí
+                    String subject = "Quiero un nuevo sistema"; // Asunto del correo
+                    String body = "Quiero un nuevo sistema para mi empresa"; // Contenido del correo
+
+                    Intent intent = new Intent(Intent.ACTION_SEND);
+                    intent.putExtra(Intent.EXTRA_EMAIL, recipients);
+                    intent.putExtra(Intent.EXTRA_SUBJECT, subject);
+                    intent.putExtra(Intent.EXTRA_TEXT, body);
+                    intent.setType("message/rfc822"); // Esto asegura que se abra el cliente de correo electrónico
+
+                    startActivity(Intent.createChooser(intent, "Elige una aplicación de correo:"));
+                });
                 builder.setView(view).setPositiveButton("Aceptar", null)
                         .setCancelable(true);
                 dialogo_creditos = builder.create();

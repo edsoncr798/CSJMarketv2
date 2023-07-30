@@ -4,6 +4,8 @@ import static android.content.Context.MODE_PRIVATE;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -115,6 +117,44 @@ public class itemCarritoAdapter extends RecyclerView.Adapter<itemCarritoAdapter.
             guardarCambios();
             if (onItemChangedListener != null) {
                 onItemChangedListener.onItemChanged();
+            }
+        });
+
+        holder.txtCantidad.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (holder.txtCantidad.getText().toString().equals("")){
+                    cantidad = 0;
+                }
+                else{
+                    cantidad = Integer.parseInt(holder.txtCantidad.getText().toString());
+                }
+
+                if (cantidad < 0) {
+                    cantidad = 0;
+                    holder.txtCantidad.setText(cantidad.toString());
+                }
+
+                total = cantidad * carrito.get(holder.getAdapterPosition()).getPrecio();
+                holder.txtTotal.setText("S/ " + decimalFormat.format(total));
+
+                carrito.get(holder.getAdapterPosition()).setCantidad(cantidad);
+                carrito.get(holder.getAdapterPosition()).setTotal(total);
+
+                guardarCambios();
+                if (onItemChangedListener != null) {
+                    onItemChangedListener.onItemChanged();
+                }
             }
         });
     }

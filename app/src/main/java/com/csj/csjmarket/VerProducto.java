@@ -98,7 +98,7 @@ public class VerProducto extends AppCompatActivity {
                     cantidad = Integer.parseInt(binding.vpTxtCantidad.getText().toString());
                 }
 
-                if (cantidad < 1) {
+                if (cantidad < 0) {
                     cantidad = 0;
                     binding.vpTxtCantidad.setText(cantidad.toString());
                 }
@@ -122,38 +122,39 @@ public class VerProducto extends AppCompatActivity {
         });
 
         binding.vpBtnComprar.setOnClickListener(view -> {
-            if (miCarrito != null){
-                for (MiCarrito item:miCarrito) {
-                    if (item.getIdProducto() == producto.getId()){
-                        item.setCantidad(cantidad);
-                        item.setTotal(cantidad * producto.getPrecioUnidadBase());
-                        editar = true;
+            if (cantidad > 0){
+                if (miCarrito != null){
+                    for (MiCarrito item:miCarrito) {
+                        if (item.getIdProducto() == producto.getId()){
+                            item.setCantidad(cantidad);
+                            item.setTotal(cantidad * producto.getPrecioUnidadBase());
+                            editar = true;
+                        }
                     }
                 }
-            }
-            else {
-                miCarrito = new ArrayList<>();
-            }
+                else {
+                    miCarrito = new ArrayList<>();
+                }
 
-            if (!editar){
-                MiCarrito item = new MiCarrito();
-                item.setIdProducto(producto.getId());
-                item.setCodigo(producto.getCodigo());
-                item.setNombre(producto.getNombre());
-                item.setIdUnidad(producto.getIdUnidadBase());
-                item.setPrecio(producto.getPrecioUnidadBase());
-                item.setCantidad(cantidad);
-                item.setUnidad(producto.getUnidadBase());
-                item.setPeso(producto.getPeso());
-                item.setTotal(cantidad * producto.getPrecioUnidadBase());
-                item.setPesoTotal(cantidad * producto.getPeso());
-                miCarrito.add(item);
+                if (!editar){
+                    MiCarrito item = new MiCarrito();
+                    item.setIdProducto(producto.getId());
+                    item.setCodigo(producto.getCodigo());
+                    item.setNombre(producto.getNombre());
+                    item.setIdUnidad(producto.getIdUnidadBase());
+                    item.setPrecio(producto.getPrecioUnidadBase());
+                    item.setCantidad(cantidad);
+                    item.setUnidad(producto.getUnidadBase());
+                    item.setPeso(producto.getPeso());
+                    item.setTotal(cantidad * producto.getPrecioUnidadBase());
+                    item.setPesoTotal(cantidad * producto.getPeso());
+                    miCarrito.add(item);
+                }
+
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString("carrito", gson.toJson(miCarrito));
+                editor.commit();
             }
-
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString("carrito", gson.toJson(miCarrito));
-            editor.commit();
-
             finish();
         });
     }

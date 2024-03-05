@@ -42,6 +42,10 @@ public class Carrito extends AppCompatActivity implements itemCarritoAdapter.OnI
         binding.carritoBtnComprar.setOnClickListener(view -> {
             Intent intent = new Intent(Carrito.this, DireccionEntrega.class);
             intent.putExtra("idPersona", getIntent().getStringExtra("idPersona"));
+            intent.putExtra("email", getIntent().getStringExtra("email"));
+            intent.putExtra("docIden", getIntent().getStringExtra("docIden"));
+            intent.putExtra("diasUltCompra", getIntent().getStringExtra("diasUltCompra"));
+            intent.putExtra("nombre", getIntent().getStringExtra("nombre"));
             intent.putExtra("totalVenta", montoTotal);
             intent.putExtra("totalPeso", pesoTotal);
             startActivity(intent);

@@ -22,6 +22,12 @@
         <action
             android:id="@+id/action_nav_inicio_to_politicasPrivacidad"
             app:destination="@id/nav_politicas" />
+        <action
+            android:id="@+id/action_nav_inicio_to_nav_libroReclamaciones"
+            app:destination="@id/nav_libroReclamaciones" />
+        <action
+            android:id="@+id/action_nav_inicio_to_nav_libroReclamaciones2"
+            app:destination="@id/nav_libroReclamaciones" />
     </fragment>
 
     <fragment
@@ -60,9 +66,16 @@
         android:id="@+id/nav_politicas"
         android:name="com.csj.csjmarket.ui.vistas.politicasPrivacidad"
         android:label="@string/politicas"
-        tools:layout="@layout/fragment_politicas_privacidad" >
+        tools:layout="@layout/fragment_politicas_privacidad">
         <action
             android:id="@+id/action_politicasPrivacidad_to_nav_inicio"
             app:destination="@id/nav_inicio" />
+    </fragment>
+    <fragment
+        android:id="@+id/nav_libroReclamaciones"
+        android:name="com.csj.csjmarket.BlankFragment"
+        android:label="@string/libroReclamaciones"
+        tools:layout="@layout/fragment_blank">
+
     </fragment>
 </navigation>

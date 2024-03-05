@@ -6,7 +6,7 @@
     app:cardElevation="5dp"
     android:layout_margin="5dp">
 
-        <LinearLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
@@ -25,16 +25,16 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:padding="5dp"
-            android:layout_marginLeft="15dp">
+            android:paddingVertical="5dp"
+            android:layout_marginLeft="5dp">
 
             <TextView
                 android:id="@+id/icarrito_txtNombreProducto"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Nombre del producto"
-                android:textStyle="bold"
-                android:textSize="15sp"/>
+                android:textSize="14sp"
+                android:textStyle="bold"/>
 
             <TextView
                 android:id="@+id/icarrito_txtUnidad"
@@ -49,111 +49,128 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center">
-
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:background="@drawable/borde_gris"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:gravity="center">
 
-                    <Button
-                        android:id="@+id/icarrito_btnDisminuir"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="?android:attr/selectableItemBackgroundBorderless"
-                        android:text="-"
-                        android:textColor="@color/black" />
-
-                    <EditText
-                        android:id="@+id/icarrito_txtCantidad"
-                        android:layout_width="100dp"
-                        android:layout_height="40dp"
-                        android:textSize="18sp"
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:inputType="number"
-                        android:text="1"
-                        android:textAlignment="center"/>
+                        android:background="@drawable/borde_gris"
+                        android:orientation="horizontal"
+                        android:layout_weight="2">
 
-                    <Button
-                        android:id="@+id/icarrito_btnAumentar"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="?android:attr/selectableItemBackgroundBorderless"
-                        android:text="+"
-                        android:textColor="@color/black" />
+                        <Button
+                            android:id="@+id/icarrito_btnDisminuir"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="?android:attr/selectableItemBackgroundBorderless"
+                            android:text="-"
+                            android:textColor="@color/black" />
+
+                        <EditText
+                            android:id="@+id/icarrito_txtCantidad"
+                            android:layout_width="match_parent"
+                            android:layout_weight="1"
+                            android:layout_height="40dp"
+                            android:textSize="18sp"
+                            android:layout_gravity="center"
+                            android:inputType="number"
+                            android:text="1"
+                            android:textAlignment="center"/>
+
+                        <Button
+                            android:id="@+id/icarrito_btnAumentar"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="?android:attr/selectableItemBackgroundBorderless"
+                            android:text="+"
+                            android:textColor="@color/black" />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="3"
+                        >
+                        <TextView
+                            android:id="@+id/icarrito_txtTotal"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="S/ 99.99"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:layout_gravity="center"
+                            android:gravity="center"
+                            />
+                    </LinearLayout>
                 </LinearLayout>
-
-                <TextView
-                    android:id="@+id/icarrito_txtTotal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="S/ 99.99"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:layout_marginLeft="15dp"/>
             </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>
-<LinearLayout
-    android:id="@+id/contenedorOpciones"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="horizontal">
 
     <LinearLayout
-        android:id="@+id/icarrito_btnEliminar"
-        android:layout_width="wrap_content"
+        android:id="@+id/contenedorOpciones"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="horizontal"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:background="@color/primary"
-        android:foreground="?android:attr/selectableItemBackgroundBorderless">
+        android:orientation="horizontal">
 
-        <ImageView
+        <LinearLayout
+            android:id="@+id/icarrito_btnEliminar"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_baseline_delete_24"
-            android:background="@android:color/transparent"
-            android:layout_marginEnd="10dp"/>
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:background="@color/primary"
+            android:foreground="?android:attr/selectableItemBackgroundBorderless">
 
-        <TextView
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_baseline_delete_24"
+                android:background="@android:color/transparent"
+                android:layout_marginEnd="10dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Eliminar"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:textSize="14sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/icarrito_btnCancelar"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Eliminar"
-            android:textColor="@color/white"
-            android:textSize="14sp"/>
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:background="@color/secondary"
+            android:foreground="?android:attr/selectableItemBackgroundBorderless">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_baseline_cancel_24"
+                android:background="@android:color/transparent"
+                android:layout_marginEnd="10dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cancelar"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:textSize="14sp"/>
+        </LinearLayout>
     </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/icarrito_btnCancelar"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="horizontal"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:background="@color/secondary"
-        android:foreground="?android:attr/selectableItemBackgroundBorderless">
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_baseline_cancel_24"
-            android:background="@android:color/transparent"
-            android:layout_marginEnd="10dp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cancelar"
-            android:textColor="@color/white"
-            android:textSize="14sp"/>
-    </LinearLayout>
-</LinearLayout>
-
 
 </androidx.cardview.widget.CardView>

@@ -8,25 +8,23 @@
             android:id="@+id/nav_inicio"
             android:icon="@drawable/ic_baseline_shopping_cart_24"
             android:title="@string/menu_home"
-            android:iconTintMode="screen"
-            android:theme="@style/Menu1"/>
+            android:iconTintMode="screen"/>
         <item
             android:id="@+id/nav_voucher"
             android:icon="@drawable/voucher"
-            android:title="@string/menu_voucher"
-            android:theme="@style/Menu1"/>
+            android:title="@string/menu_voucher"/>
         <item
             android:id="@+id/nav_profile"
             android:icon="@drawable/ic_baseline_person_24"
-            android:title="@string/menu_profile"
-            android:theme="@style/Menu1"/>
-    </group>
-
-    <group>
+            android:title="@string/menu_profile"/>
         <item
             android:id="@+id/nav_politicas"
             android:icon="@drawable/ic_baseline_local_police_24"
-            android:title="@string/politicas"
-            android:theme="@style/Menu1"/>
+            android:title="@string/politicas"/>
+        <item
+            android:id="@+id/nav_libroReclamaciones"
+            android:icon="@drawable/ic_baseline_menu_book_24"
+            android:title="@string/libroReclamaciones"/>
     </group>
+
 </menu>

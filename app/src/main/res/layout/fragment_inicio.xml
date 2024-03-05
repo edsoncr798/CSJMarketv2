@@ -5,70 +5,137 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context=".ui.vistas.inicio">
+    tools:context=".ui.vistas.inicio"
+    android:layout_marginTop="50dp">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true">
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            android:fitsSystemWindows="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <org.imaginativeworld.whynotimagecarousel.ImageCarousel
+                    android:id="@+id/carousel"
+                    android:layout_width="match_parent"
+                    android:layout_height="160dp"
+                    app:autoPlay="true"
+                    app:autoPlayDelay="5000"
+                    app:autoWidthFixing="true"
+                    app:infiniteCarousel="true"
+                    app:showIndicator="true"
+                    app:showNavigationButtons="false"
+                    app:touchToPause="true"
+                    app:carouselType="SHOWCASE"
+                    app:carouselGravity="CENTER"
+                    app:scaleOnScroll="true"
+                    app:carouselBackground="#FFFFFF"
+                    app:showTopShadow="false"
+                    app:showBottomShadow="false"
+                    app:imageScaleType="fitXY"/>
+
+                <ListView
+                    android:id="@+id/lvProveedores"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+            </LinearLayout>
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:layout_marginTop="50dp">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-            <androidx.cardview.widget.CardView
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_margin="10dp"
+            app:cardCornerRadius="5dp"
+            app:cardElevation="5dp">
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_margin="15dp"
-                app:cardCornerRadius="5dp"
-                app:cardElevation="5dp">
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:padding="5dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <ImageView
+                    android:id="@+id/imageView2"
+                    android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:orientation="horizontal"
-                    android:padding="5dp">
+                    android:layout_marginStart="10dp"
+                    android:src="@drawable/ic_baseline_search_24" />
 
-                    <ImageView
-                        android:id="@+id/imageView2"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:layout_marginLeft="10dp"
-                        android:src="@drawable/ic_baseline_search_24" />
+                <EditText
+                    android:id="@+id/txtBuscarProducto"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:ems="10"
+                    android:hint="Búsqueda"
+                    android:inputType="textPersonName"
+                    android:textSize="14sp"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
-                    <EditText
-                        android:id="@+id/txtBuscarProducto"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:layout_marginLeft="10dp"
-                        android:layout_weight="1"
-                        android:background="@null"
-                        android:ems="10"
-                        android:hint="Búsqueda"
-                        android:inputType="textPersonName" />
-                </LinearLayout>
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone">
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="10dp">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Resultados"
+                    android:layout_gravity="left"
+                    android:layout_weight="1"/>
 
-            </androidx.cardview.widget.CardView>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:pointerIcon="hand"
+                    android:text="hola"
+                    android:layout_gravity="right"
+                    android:layout_weight="1"/>
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvListaProducto"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scrollbars="vertical"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
-
+            android:scrollbars="vertical"/>
     </LinearLayout>
 
     <TextView
         android:id="@+id/txtCarritoItemCount"
         android:visibility="gone"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_marginTop="15dp"
-        android:layout_marginRight="15dp"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
         android:background="@drawable/indicador"
         android:elevation="10dp"
         android:text="0"
         android:gravity="center"
         android:textColor="@color/white"
-        android:textSize="14sp"
+        android:textSize="16sp"
         android:textStyle="bold"
         app:layout_anchor="@+id/fab"
         app:layout_anchorGravity="start|top" />

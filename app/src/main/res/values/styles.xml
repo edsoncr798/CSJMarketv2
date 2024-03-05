@@ -19,8 +19,11 @@
         <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="Menu1" parent="@android:style/TextAppearance.Widget.IconMenu.Item">
-        <item name="android:textSize">29sp</item>
+    <style name="Menu" parent="Widget.AppCompat.DrawerArrowToggle">
+        <item name="android:textSize">14sp</item>
     </style>
 
+    <style name="CustomRippleTheme">
+        <item name="android:colorControlHighlight">@color/grey</item>
+    </style>
 </resources>

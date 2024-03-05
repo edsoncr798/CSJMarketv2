@@ -4,12 +4,18 @@ import java.io.Serializable;
 
 public class ValidarCorreo implements Serializable {
     private Integer id;
+    private String docIdentidad;
+    private Integer diasUltimaCompra;
 
     public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public String getDocIdentidad() {
+        return docIdentidad;
+    }
+
+    public Integer getDiasUltimaCompra() {
+        return diasUltimaCompra;
     }
 }

@@ -1,39 +1,31 @@
 package com.csj.csjmarket;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Menu;
 import android.widget.TextView;
-
-import com.csj.csjmarket.modelos.MiCarrito;
-import com.csj.csjmarket.modelos.ValidarCorreo;
-import com.csj.csjmarket.ui.vistas.inicio;
-import com.csj.csjmarket.ui.vistas.perfil;
-import com.google.android.material.snackbar.Snackbar;
-import com.google.android.material.navigation.NavigationView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.csj.csjmarket.databinding.ActivityMainBinding;
+import com.csj.csjmarket.modelos.ValidarCorreo;
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import java.lang.reflect.Type;
-import java.util.ArrayList;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -90,8 +82,18 @@ public class MainActivity extends AppCompatActivity {
                         bundle.putString("id", validarCorreo.getId().toString());
                         break;
                     case R.id.nav_inicio:
+                        bundle.putString("id", validarCorreo.getId().toString());
+                        bundle.putString("email", correoUsuario);
+                        bundle.putString("docIden", validarCorreo.getDocIdentidad());
+                        bundle.putString("diasUltCompra", validarCorreo.getDiasUltimaCompra().toString());
+                        bundle.putString("nombre", nombreUsuario);
+                        break;
                     case R.id.nav_voucher:
                         bundle.putString("id", validarCorreo.getId().toString());
+                        break;
+                    case R.id.nav_libroReclamaciones:
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://librorec.comsanjuan.com/"));
+                        startActivity(intent);
                         break;
                 }
             }
@@ -110,31 +112,55 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
 
-        switch (id) {
-            case R.id.action_settings:
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                View view = getLayoutInflater().inflate(R.layout.dialogo_creditos, null);
-                TextView correo = view.findViewById(R.id.correo);
-                correo.setOnClickListener(view1 -> {
-                    String[] recipients = {"fausto@ariasdev.com"}; // Agrega la dirección de correo del destinatario aquí
-                    String subject = "Quiero un nuevo sistema"; // Asunto del correo
-                    String body = "Quiero un nuevo sistema para mi empresa"; // Contenido del correo
+        if(id == R.id.action_settings) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            View view = getLayoutInflater().inflate(R.layout.dialogo_creditos, null);
+            TextView correo = view.findViewById(R.id.correo);
+            correo.setOnClickListener(view1 -> {
+                String[] recipients = {"fausto@ariasdev.com"}; // Agrega la dirección de correo del destinatario aquí
+                String subject = "Quiero un nuevo sistema"; // Asunto del correo
+                String body = "Quiero un nuevo sistema para mi empresa"; // Contenido del correo
 
-                    Intent intent = new Intent(Intent.ACTION_SEND);
-                    intent.putExtra(Intent.EXTRA_EMAIL, recipients);
-                    intent.putExtra(Intent.EXTRA_SUBJECT, subject);
-                    intent.putExtra(Intent.EXTRA_TEXT, body);
-                    intent.setType("message/rfc822"); // Esto asegura que se abra el cliente de correo electrónico
+                Intent intent = new Intent(Intent.ACTION_SEND);
+                intent.putExtra(Intent.EXTRA_EMAIL, recipients);
+                intent.putExtra(Intent.EXTRA_SUBJECT, subject);
+                intent.putExtra(Intent.EXTRA_TEXT, body);
+                intent.setType("message/rfc822"); // Esto asegura que se abra el cliente de correo electrónico
 
-                    startActivity(Intent.createChooser(intent, "Elige una aplicación de correo:"));
-                });
-                builder.setView(view).setPositiveButton("Aceptar", null)
-                        .setCancelable(true);
-                dialogo_creditos = builder.create();
-                dialogo_creditos.show();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+                startActivity(Intent.createChooser(intent, "Elige una aplicación de correo:"));
+            });
+            builder.setView(view).setPositiveButton("Aceptar", null)
+                    .setCancelable(true);
+            dialogo_creditos = builder.create();
+            dialogo_creditos.show();
+            return true;
+        }
+        else if (id == R.id.action_contactUs){
+            String msj = "Hola Comercializadora San Juan, deseo dar una sugerencia.";
+            String numeroTel = "+51965877767";
+
+            try {
+                // Crea un URI con el número de teléfono y el mensaje
+                Uri uri = Uri.parse("https://wa.me/" + numeroTel + "?text=" + URLEncoder.encode(msj, "UTF-8"));
+
+                // Crea un Intent para abrir WhatsApp
+                Intent sendIntent = new Intent(Intent.ACTION_VIEW, uri);
+
+                // Inicia la actividad
+                startActivity(sendIntent);
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+
+            return true;
+        }
+        else if(id == R.id.nav_libroReclamaciones){
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://librorec.comsanjuan.com/"));
+            startActivity(intent);
+            return true;
+        }
+        else{
+            return super.onOptionsItemSelected(item);
         }
     }
 

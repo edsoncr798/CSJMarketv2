@@ -1,6 +1,5 @@
 package com.csj.csjmarket;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -10,17 +9,11 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Spinner;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
@@ -34,15 +27,12 @@ import com.csj.csjmarket.modelos.ruc;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 public class EnlazarCliente extends AppCompatActivity {
@@ -107,43 +97,64 @@ public class EnlazarCliente extends AppCompatActivity {
         });
 
         binding.enlazarBtnContinuar.setOnClickListener(view -> {
-            if (validarDocumento() && validarDireccion() && validarTelefono()) {
-                String nombre = "";
-                String prefijo = "";
-                String nombres = "";
-                String apellidoPaterno = "";
-                String apellidoMaterno = "";
+            String nombre = "";
+            String prefijo = "";
+            String nombres = "";
+            String apellidoPaterno = "";
+            String apellidoMaterno = "";
+            boolean clienteValido = true;
 
-                if (binding.enlazarSpnTipoDocumento.getSelectedItemPosition() == 0){
-                    prefijo = binding.enlazarTxtApellidoPaterno.getText().toString().trim().substring(0, 1);
-                    nombre = binding.enlazarTxtApellidoPaterno.getText().toString().trim() + " " +
-                            binding.enlazarTxtApellidoMaterno.getText().toString().trim() + " " +
-                            binding.enlazarTxtNombres.getText().toString().trim();
-                    nombres = binding.enlazarTxtNombres.getText().toString().trim();
-                    apellidoPaterno = binding.enlazarTxtApellidoPaterno.getText().toString().trim();
-                    apellidoMaterno = binding.enlazarTxtApellidoMaterno.getText().toString().trim();
+            if (binding.enlazarSpnTipoDocumento.getSelectedItemPosition() == 0){
+                if (validarDocumento() &&
+                        validarApellidoPaterno() &&
+                        validarApellidoMaterno() &&
+                        validarNombres() &&
+                        validarDireccion() &&
+                        validarTelefono()) {
+                    prefijo = binding.enlazarTxtApellidoPaterno.getText().toString().toUpperCase().trim().substring(0, 1);
+                    nombre = binding.enlazarTxtApellidoPaterno.getText().toString().toUpperCase().trim() + " " +
+                            binding.enlazarTxtApellidoMaterno.getText().toString().toUpperCase().trim() + " " +
+                            binding.enlazarTxtNombres.getText().toString().toUpperCase();
+                    nombres = binding.enlazarTxtNombres.getText().toString().toUpperCase();
+                    apellidoPaterno = binding.enlazarTxtApellidoPaterno.getText().toString().toUpperCase().trim();
+                    apellidoMaterno = binding.enlazarTxtApellidoMaterno.getText().toString().toUpperCase().trim();
                 }
+                else{
+                    clienteValido = false;
+                }
+            }
+            else if (validarDocumento() &&
+                    validarNombre() &&
+                    validarDireccion() &&
+                    validarTelefono() ){
+                nombre = binding.enlazarTxtNombre.getText().toString().toUpperCase();
+                prefijo = nombre.substring(0, 1);
+            }
+            else{
+                clienteValido = false;
+            }
 
-                else {
-                    nombre = binding.enlazarTxtNombre.getText().toString();
-                    prefijo = nombre.substring(0, 1);
-                }
-                clienteCreacion = new ClienteCreacion(prefijo
+            if (clienteValido){
+                clienteCreacion = new ClienteCreacion(
+                        prefijo
                         , nombre
                         , apellidoPaterno
                         , apellidoMaterno
                         , nombres
-                        , binding.enlazarTxtCorreo.getText().toString()
-                        , binding.enlazarTxtNumeroDocumento.getText().toString()
+                        , binding.enlazarTxtCorreo.getText().toString().trim()
+                        , binding.enlazarTxtNumeroDocumento.getText().toString().trim()
                         , binding.enlazarTxtDireccion.getText().toString()
                         , distritos.get(binding.direccionSpnDistrito.getSelectedItemPosition()).getUbigeo()
-                        , binding.enlazarTxtTelefono.getText().toString());
+                        , binding.enlazarTxtTelefono.getText().toString().trim());
 
                 crearCliente();
             }
+
         });
 
-        listarProvincias();
+        //listarProvincias();
+
+        listarDistritos(138);
         binding.enlazarTxtNumeroDocumento.addTextChangedListener(new validacionTextWatcher(binding.enlazarTxtNumeroDocumento));
         binding.enlazarTxtDireccion.addTextChangedListener(new validacionTextWatcher(binding.enlazarTxtDireccion));
         binding.enlazarTxtTelefono.addTextChangedListener(new validacionTextWatcher(binding.enlazarTxtTelefono));
@@ -180,6 +191,12 @@ public class EnlazarCliente extends AppCompatActivity {
         }
     }
 
+    private void requestFocus(View view) {
+        if (view.requestFocus()) {
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        }
+    }
+
     private boolean validarDireccion() {
         if (binding.enlazarTxtDireccion.getText().toString().trim().isEmpty()) {
             binding.enlazarTilDireccion.setError("Este campo no puede estar vacío.");
@@ -187,6 +204,50 @@ public class EnlazarCliente extends AppCompatActivity {
             return false;
         } else {
             binding.enlazarTilDireccion.setErrorEnabled(false);
+        }
+        return true;
+    }
+
+    private boolean validarApellidoPaterno() {
+        if (binding.enlazarTxtApellidoPaterno.getText().toString().trim().isEmpty()) {
+            binding.enlazarTilApellidoPaterno.setError("Este campo no puede estar vacío.");
+            requestFocus(binding.enlazarTilApellidoPaterno);
+            return false;
+        } else {
+            binding.enlazarTilApellidoPaterno.setErrorEnabled(false);
+        }
+        return true;
+    }
+
+    private boolean validarApellidoMaterno() {
+        if (binding.enlazarTxtApellidoMaterno.getText().toString().trim().isEmpty()) {
+            binding.enlazarTilApellidoMaterno.setError("Este campo no puede estar vacío.");
+            requestFocus(binding.enlazarTilApellidoMaterno);
+            return false;
+        } else {
+            binding.enlazarTilApellidoMaterno.setErrorEnabled(false);
+        }
+        return true;
+    }
+
+    private boolean validarNombre() {
+        if (binding.enlazarTxtNombre.getText().toString().trim().isEmpty()) {
+            binding.enlazarTilNombre.setError("Este campo no puede estar vacío.");
+            requestFocus(binding.enlazarTilNombre);
+            return false;
+        } else {
+            binding.enlazarTilNombre.setErrorEnabled(false);
+        }
+        return true;
+    }
+
+    private boolean validarNombres() {
+        if (binding.enlazarTxtNombres.getText().toString().trim().isEmpty()) {
+            binding.enlazarTilNombres.setError("Este campo no puede estar vacío.");
+            requestFocus(binding.enlazarTilNombres);
+            return false;
+        } else {
+            binding.enlazarTilNombres.setErrorEnabled(false);
         }
         return true;
     }
@@ -204,12 +265,6 @@ public class EnlazarCliente extends AppCompatActivity {
             binding.enlazarTilNumeroTelefono.setErrorEnabled(false);
         }
         return true;
-    }
-
-    private void requestFocus(View view) {
-        if (view.requestFocus()) {
-            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-        }
     }
 
     private boolean validarDocumento() {
@@ -277,7 +332,7 @@ public class EnlazarCliente extends AppCompatActivity {
             alertDialog.dismiss();
         }, error -> {
             alertDialog.dismiss();
-            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente. Si el problema persiste póngase en contacto con el desarrollador.");
+            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\nDetalle: " + error.toString());
         });
         Volley.newRequestQueue(this).add(jsonObjectRequest);
     }
@@ -305,7 +360,7 @@ public class EnlazarCliente extends AppCompatActivity {
 
         }, error -> {
             alertDialog.dismiss();
-            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente. Si el problema persiste póngase en contacto con el desarrollador.");
+            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\nDetalle: " + error.toString());
         });
         Volley.newRequestQueue(getApplicationContext()).add(jsonArrayRequest);
     }
@@ -331,7 +386,7 @@ public class EnlazarCliente extends AppCompatActivity {
             }
         }, error -> {
             alertDialog.dismiss();
-            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente. Si el problema persiste póngase en contacto con el desarrollador.");
+            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\nDetalle: " + error.toString());
         });
         Volley.newRequestQueue(getApplicationContext()).add(jsonArrayRequest);
     }
@@ -347,7 +402,7 @@ public class EnlazarCliente extends AppCompatActivity {
                 acceder(correoUsuario, nombreUsuario);
             }, error -> {
                 alertDialog.dismiss();
-                mostrarAlerta("Error al guardar el nuevo cliente, por favor notifique al desarrollador de la aplicación.");
+                mostrarAlerta("Error al guardar el nuevo cliente.\nDetalle: " + error.toString());
             }){
                 @Override
                 public Map<String, String> getHeaders() {
@@ -360,12 +415,11 @@ public class EnlazarCliente extends AppCompatActivity {
             Volley.newRequestQueue(getApplicationContext()).add(jsonObjectRequest);
         } catch (Exception e) {
             alertDialog.dismiss();
-            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente. Si el problema persiste póngase en contacto con el desarrollador.");
+            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\nDetalle: " + e.getMessage());
         }
     }
 
     private void acceder(String correo, String nombre) {
-        mostrarLoader();
         String url = getString(R.string.connection) + "/api/validarCorreos?correo=" + correo;
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, response -> {
             Gson gson = new Gson();
@@ -376,7 +430,7 @@ public class EnlazarCliente extends AppCompatActivity {
             if (validarCorreo.getId() != 0) {
                 irMain(correo, nombre, validarCorreo);
             } else {
-                mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente. Si el problema persiste póngase en contacto con el desarrollador.");
+                mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.");
             }
         }, error -> {
             alertDialog.dismiss();

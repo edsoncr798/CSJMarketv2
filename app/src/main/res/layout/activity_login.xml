@@ -1,49 +1,203 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".LoginActivity"
-    android:orientation="vertical"
-    android:gravity="center">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="250dp"
-            android:scaleType="fitXY"
-            android:src="@drawable/banner_market"
-            app:layout_constraintTop_toTopOf="parent" />
-    </LinearLayout>
-
+    android:orientation="vertical">
 
     <LinearLayout
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="15dp"
-        android:background="@drawable/estilo_boton_google"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@+id/textView"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:layout_editor_absoluteX="15dp">
+        android:paddingVertical="20dp"
+        android:paddingHorizontal="30dp"
+        android:background="@color/secondary"
+        android:orientation="vertical">
 
-        <Button
-            android:id="@+id/login_btnGoogle"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="CSJ"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:textSize="60sp"
+                android:fontFamily="@font/lato"
+                android:layout_gravity="center"
+                android:gravity="right"
+                android:textScaleX="1.2"/>
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="72dp"
+                android:src="@drawable/logo_csj"
+                android:layout_weight="1"
+                android:scaleType="fitStart"
+                />
+        </LinearLayout>
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/estilo_boton1"
-            android:drawableLeft="@drawable/google"
-            android:foreground="?android:attr/selectableItemBackgroundBorderless"
-            android:padding="15dp"
-            android:text="Acceder con Google" />
+            android:text="MARKET"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="60sp"
+            android:fontFamily="@font/lato"
+            android:gravity="center"
+            android:layout_marginTop="-10dp"
+            android:textScaleX="1.1"/>
+
     </LinearLayout>
 
-    <TextView
+    <LinearLayout
+        android:id="@+id/contenedorBotones"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="15dp">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/login_tilCorreo"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:layout_marginTop="15dp"
+            app:errorTextAppearance="@style/Widget.Design.TextInputLayout"
+            app:errorTextColor="@android:color/holo_red_dark">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/login_txtCorreo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/txtCorreo"
+                android:imeOptions="actionNext"
+                android:inputType="textWebEmailAddress" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/login_tilPass"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            app:passwordToggleDrawable="@drawable/show_hide_password"
+            app:passwordToggleEnabled="true"
+            app:errorTextAppearance="@style/Widget.Design.TextInputLayout"
+            app:errorTextColor="@android:color/holo_red_dark">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/login_txtPass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/txtContraseña"
+                android:imeOptions="actionDone"
+                android:inputType="textPassword" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/estilo_boton1">
+
+            <Button
+                android:id="@+id/login_btnMail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ripple"
+                android:drawableLeft="@drawable/log_in_4_svgrepo_com"
+                android:inputType="textCapWords"
+                android:paddingEnd="50dp"
+                android:text="Acceder"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+
+        <TextView
+            android:id="@+id/txtCrearCuenta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:padding="10dp"
+            android:text="Crear cuenta"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:textColor="@color/secondary"/>
+
+        <TextView
+            android:id="@+id/txtRecuperarCuenta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="¿Olvidaste tu contraseña?"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:textSize="12sp"/>
+
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center">
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_weight="1"
+                android:background="@android:color/darker_gray"
+                android:layout_gravity="center"
+                android:visibility="visible"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:text="O"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_weight="1"
+                android:background="@android:color/darker_gray"
+                android:visibility="visible"/>
+        </LinearLayout>
+
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:background="@drawable/estilo_boton_google"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/login_btnGoogle"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:drawableLeft="@drawable/google_color_svgrepo_com"
+                android:background="@drawable/ripple"
+                android:text="Acceder con Google"
+                android:paddingEnd="50dp"
+                android:textStyle="bold"
+                android:inputType="textCapWords"/>
+        </LinearLayout>
+
+
+
+    </LinearLayout>
+
+
+
+    <!--<TextView
         android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -51,6 +205,6 @@
         android:text="© 2023 Comercializadora San Juan SAC - Todos los derechos reservados."
         android:textAlignment="center"
         app:layout_constraintBottom_toBottomOf="parent"
-        tools:layout_editor_absoluteX="15dp" />
+        tools:layout_editor_absoluteX="15dp" />-->
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

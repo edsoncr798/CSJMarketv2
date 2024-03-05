@@ -23,7 +23,7 @@
                 android:text="NUEVO CLIENTE"
                 android:textAlignment="center"
                 android:textStyle="bold"
-                android:textSize="20sp"/>
+                android:textSize="18sp"/>
 
             <TextView
                 android:layout_width="match_parent"
@@ -66,7 +66,7 @@
                 android:layout_height="50dp"
                 android:layout_gravity="center"
                 android:background="@drawable/estilo_boton_google"
-                android:entries="@array/lenguajes"
+                android:entries="@array/docTypes"
                 android:spinnerMode="dropdown"
                 android:textAlignment="center" />
 
@@ -194,7 +194,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:orientation="vertical"
-                    android:layout_marginBottom="15dp">
+                    android:layout_marginBottom="15dp"
+                    android:visibility="gone">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -220,7 +221,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:orientation="vertical"
-                    android:layout_marginBottom="15dp">
+                    android:layout_marginBottom="15dp"
+                    android:visibility="gone">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -303,21 +305,20 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/txtNumeroTelefono"
                     android:inputType="number"
-                    android:imeOptions="actionNext"
+                    android:imeOptions="actionDone"
                     android:textAlignment="center"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/estilo_boton_google">
+                android:background="@drawable/estilo_boton1">
 
                 <Button
                     android:id="@+id/enlazar_btnContinuar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/estilo_boton1"
-                    android:foreground="?android:attr/selectableItemBackgroundBorderless"
+                    android:background="@drawable/ripple"
                     android:inputType="textCapWords"
                     android:textStyle="bold"
                     android:text="Guardar" />

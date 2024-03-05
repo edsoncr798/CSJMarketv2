@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="100dp"/> <!-- Usar un valor grande para lograr la forma circular -->
+    <solid android:color="@color/grey"/> <!-- Color de fondo del botón -->
+    <padding android:bottom="5dp"/>
+    <padding android:left="5dp"/>
+    <padding android:right="5dp"/>
+    <padding android:top="5dp"/>
+</shape>

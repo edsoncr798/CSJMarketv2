@@ -31,7 +31,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_marginTop="15dp"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textStyle="bold"
         android:text="Fausto Arias"
         android:textColor="@color/black"

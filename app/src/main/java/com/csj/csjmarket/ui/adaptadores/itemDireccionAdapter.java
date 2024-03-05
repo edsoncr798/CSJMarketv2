@@ -4,6 +4,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -14,7 +15,7 @@ import com.csj.csjmarket.modelos.Direccion;
 
 import java.util.ArrayList;
 
-public class itemDireccionAdapter extends RecyclerView.Adapter<itemDireccionAdapter.ViewHolderDireccion>{
+public class    itemDireccionAdapter extends RecyclerView.Adapter<itemDireccionAdapter.ViewHolderDireccion>{
     private ArrayList<Direccion> direcciones;
 
     public itemDireccionAdapter(ArrayList<Direccion> direcciones) {
@@ -45,7 +46,7 @@ public class itemDireccionAdapter extends RecyclerView.Adapter<itemDireccionAdap
 
     public class ViewHolderDireccion extends RecyclerView.ViewHolder {
         private TextView txtDireccion;
-        private Button btnElejir;
+        private LinearLayout btnElejir;
         public ViewHolderDireccion(@NonNull View itemView) {
             super(itemView);
             txtDireccion = itemView.findViewById(R.id.idireccion_txtDescripcion);

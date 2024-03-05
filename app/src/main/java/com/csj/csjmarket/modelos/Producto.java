@@ -15,6 +15,8 @@ public class Producto implements Serializable {
     private Double precioUnidadBase;
     private Double precioUnidadRef;
     private Double peso;
+    private String proveedor;
+    private int idProveedor;
 
     //private String imagen;
 
@@ -60,5 +62,13 @@ public class Producto implements Serializable {
 
     public Double getPeso() {
         return peso;
+    }
+
+    public String getProveedor() {
+        return proveedor;
+    }
+
+    public int getIdProveedor() {
+        return idProveedor;
     }
 }

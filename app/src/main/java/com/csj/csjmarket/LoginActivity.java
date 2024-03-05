@@ -4,7 +4,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Patterns;
 import android.view.View;
+import android.view.WindowManager;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
@@ -35,6 +39,7 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.gson.Gson;
@@ -80,6 +85,154 @@ public class LoginActivity extends AppCompatActivity {
             mostrarLoader();
             signIn();
         });
+
+        binding.txtCrearCuenta.setOnClickListener(view -> {
+            Intent intent = new Intent(LoginActivity.this, RegistrarCorreo.class);
+            startActivity(intent);
+            finish();
+        });
+
+        binding.loginBtnMail.setOnClickListener(view -> {
+            if (validarFormatoCorreo() && validarContraseña()){
+                mostrarLoader();
+                mAuth.signInWithEmailAndPassword(binding.loginTxtCorreo.getText().toString().trim(),
+                                binding.loginTxtPass.getText().toString().trim())
+                        .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                try {
+                                    if (task.isSuccessful()) {
+                                        FirebaseUser user = mAuth.getCurrentUser();
+                                        updateUI(user);
+                                    } else {
+                                        alertDialog.dismiss();
+                                        String errorCode = ((FirebaseAuthException) task.getException()).getErrorCode();
+                                        switch (errorCode) {
+                                            case "ERROR_INVALID_CUSTOM_TOKEN":
+                                                mostrarAlerta("El formato del token personalizado es incorrecto. Por favor revisa la documentación.");
+                                                break;
+                                            case "ERROR_CUSTOM_TOKEN_MISMATCH":
+                                                mostrarAlerta("El token personalizado corresponde a una audiencia diferente.");
+                                                break;
+                                            case "ERROR_INVALID_CREDENTIAL":
+                                                mostrarAlerta("La credencial de autenticación proporcionada tiene un formato incorrecto o ha caducado.");
+                                                break;
+                                            case "ERROR_INVALID_EMAIL":
+                                                mostrarAlerta("La dirección de correo electrónico está mal formateada.");
+                                                break;
+                                            case "ERROR_WRONG_PASSWORD":
+                                                mostrarAlerta("La contraseña no es válida o el usuario no tiene contraseña.");
+                                                break;
+                                            case "ERROR_USER_MISMATCH":
+                                                mostrarAlerta("Las credenciales proporcionadas no corresponden al usuario que inició sesión anteriormente.");
+                                                break;
+                                            case "ERROR_REQUIRES_RECENT_LOGIN":
+                                                mostrarAlerta("Esta operación es confidencial y requiere autenticación reciente. Inicie sesión nuevamente antes de volver a intentar esta solicitud.");
+                                                break;
+                                            case "ERROR_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL":
+                                                mostrarAlerta("Ya existe una cuenta con la misma dirección de correo electrónico pero con credenciales de inicio de sesión diferentes. Inicie sesión utilizando un proveedor asociado con esta dirección de correo electrónico.");
+                                                break;
+                                            case "ERROR_EMAIL_ALREADY_IN_USE":
+                                                mostrarAlerta("La dirección de correo electrónico ya está en uso en otra cuenta.");
+                                                break;
+                                            case "ERROR_CREDENTIAL_ALREADY_IN_USE":
+                                                mostrarAlerta("Esta credencial ya está asociada con una cuenta de usuario diferente.");
+                                                break;
+                                            case "ERROR_USER_DISABLED":
+                                                mostrarAlerta("La cuenta de usuario ha sido deshabilitada por un administrador.");
+                                                break;
+                                            case "ERROR_USER_TOKEN_EXPIRED":
+                                                mostrarAlerta("La credencial del usuario ya no es válida. El usuario debe iniciar sesión nuevamente.");
+                                                break;
+                                            case "ERROR_USER_NOT_FOUND":
+                                                mostrarAlerta("No existe ningún registro de usuario correspondiente a este identificador. Es posible que el usuario haya sido eliminado.");
+                                                break;
+                                            case "ERROR_INVALID_USER_TOKEN":
+                                                mostrarAlerta("La credencial del usuario ya no es válida. El usuario debe iniciar sesión nuevamente.");
+                                                break;
+                                            case "ERROR_OPERATION_NOT_ALLOWED":
+                                                mostrarAlerta("Esta operación no está permitida. Debes habilitar este servicio en la consola.");
+                                                break;
+                                            case "ERROR_WEAK_PASSWORD":
+                                                mostrarAlerta("La contraseña proporcionada no es válida.");
+                                                break;
+                                            case "ERROR_MISSING_EMAIL":
+                                                mostrarAlerta("Se debe proporcionar una dirección de correo electrónico.");
+                                                break;
+                                        }
+                                    }
+                                }catch (Exception ex){
+                                    mostrarAlerta("Algo salio mal, por favor intenta nuevamente ahora o vuelve más tarde.");
+                                }
+
+                            }
+                        });
+            }
+        });
+
+        binding.txtRecuperarCuenta.setOnClickListener(view -> {
+            Intent intent = new Intent(LoginActivity.this, RecuperarCorreo.class);
+            startActivity(intent);
+            finish();
+        });
+
+        binding.loginTxtCorreo.addTextChangedListener(new validacionTextWatcher(binding.loginTxtCorreo));
+        binding.loginTxtPass.addTextChangedListener(new validacionTextWatcher(binding.loginTxtPass));
+    }
+
+    public class validacionTextWatcher implements TextWatcher {
+        private View view;
+
+        private validacionTextWatcher(View view) {
+            this.view = view;
+        }
+
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+        }
+
+        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+        }
+
+        public void afterTextChanged(Editable editable) {
+            switch (view.getId()) {
+                case R.id.login_txtCorreo:
+                    validarFormatoCorreo();
+                    break;
+                case R.id.login_txtPass:
+                    validarContraseña();
+                    break;
+            }
+        }
+    }
+
+    private void requestFocus(View view) {
+        if (view.requestFocus()) {
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        }
+    }
+
+    private boolean validarFormatoCorreo() {
+        String direccionCorreo = binding.loginTxtCorreo.getText().toString().trim();
+        if (direccionCorreo.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(direccionCorreo).matches()) {
+            binding.loginTilCorreo.setError("Por favor, ingrese un correo electrónico válido.");
+            requestFocus(binding.loginTilCorreo);
+            return false;
+        }else {
+            binding.loginTilCorreo.setErrorEnabled(false);
+        }
+        return true;
+    }
+
+    private boolean validarContraseña() {
+        String contraseñaCorreo = binding.loginTxtPass.getText().toString().trim();
+        if (contraseñaCorreo.isEmpty()) {
+            binding.loginTilPass.setError("Por favor, ingrese su contraseña.");
+            requestFocus(binding.loginTilPass);
+            return false;
+        }else {
+            binding.loginTilPass.setErrorEnabled(false);
+        }
+        return true;
     }
 
     @Override
@@ -96,7 +249,6 @@ public class LoginActivity extends AppCompatActivity {
     private void signIn() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         googleSignInLauncher.launch(new Intent(signInIntent));
-
     }
 
     ActivityResultLauncher<Intent> googleSignInLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
@@ -142,7 +294,24 @@ public class LoginActivity extends AppCompatActivity {
 
     private void updateUI(FirebaseUser user) {
         if (user != null) {
-            acceder(user.getEmail(), user.getDisplayName());
+            if (user.isEmailVerified()) {
+                acceder(user.getEmail(), user.getDisplayName() == null || user.getDisplayName() == "" ? user.getEmail() : user.getDisplayName());
+            }
+            else {
+                if (alertDialog != null){
+                    alertDialog.dismiss();
+                }
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setIcon(R.drawable.ic_baseline_info_24);
+                builder.setTitle("Aún no haz verificado tu correo");
+                builder.setMessage("Hemos enviado un mensaje de correo electrónico a " + user.getEmail() + " para asegurarnos de que eres el propietario. Por favor, comprueba su bandeja de entrada.");
+                builder.setPositiveButton("Aceptar", (dialogInterface, i) -> {
+                    mAuth.signOut();
+                });
+                builder.setCancelable(false);
+                alertDialog = builder.create();
+                alertDialog.show();
+            }
         }
     }
 
@@ -177,7 +346,7 @@ public class LoginActivity extends AppCompatActivity {
         builder.setIcon(R.drawable.ic_baseline_info_24);
         builder.setTitle("Error");
         builder.setMessage(mensaje);
-        builder.setPositiveButton("Aceptar", null);
+        builder.setPositiveButton("Aceptar",null);
         builder.setCancelable(false);
         alertDialog = builder.create();
         alertDialog.show();
@@ -203,7 +372,7 @@ public class LoginActivity extends AppCompatActivity {
             if (alertDialog != null){
                 alertDialog.dismiss();
             }
-            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente. Si el problema persiste póngase en contacto con el desarrollador.");
+            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\nDetalle: " + error.toString());
         });
         Volley.newRequestQueue(this).add(jsonObjectRequest);
     }

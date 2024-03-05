@@ -14,15 +14,80 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Su pedido se guardo exitosamente. El número de pedido generado es: "/>
+        android:text="Su pedido se guardo exitosamente, por favor guarde la siguiente información."/>
 
     <TextView
-        android:layout_marginTop="15dp"
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Número de operación:"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/dr_txtNumPedidoNiubiz"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="0000"
+        android:textSize="18sp"
+        android:textColor="@color/secondary"/>
+
+    <TextView
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Número de pedido:"
+        android:textStyle="bold"/>
+
+    <TextView
         android:id="@+id/dr_txtNumPedido"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="PM02-00000000"
-        android:textStyle="italic"
-        android:textSize="18sp"
+        android:textSize="16sp"
+        android:textColor="@color/secondary"/>
+
+    <TextView
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Fecha y hora del pedido:"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/dr_txtFechaHora"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="18/08/2023 11:48:11"
+        android:textSize="14sp"
+        android:textColor="@color/secondary"/>
+
+    <TextView
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Importe de la transacción:"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/dr_txtImporte"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="99.00 PEN"
+        android:textSize="14sp"
+        android:textColor="@color/secondary"/>
+
+    <TextView
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Datos de la tarjeta:"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/dr_txtTarjeta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="visa 000000******0000"
+        android:textSize="14sp"
         android:textColor="@color/secondary"/>
 </LinearLayout>

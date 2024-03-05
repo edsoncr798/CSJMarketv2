@@ -5,7 +5,7 @@
     <string name="menu_profile">Mi perfil</string>
     <string name="title_activity_login">LoginActivity</string>
     <string name="txtDocumento">Ingrese su número de documento</string>
-    <string name="txtContraseña">Ingrese su contraseña</string>
+    <string name="txtContraseña">Contraseña</string>
     <string name="btnIngresar">Ingresar</string>
 
     <string name="agregar">Agregar</string>
@@ -21,7 +21,7 @@
     <string name="txtNumeroTelefono">Número de teléfono</string>
     <string name="action_settings">Acerca</string>
 
-    <string-array name="lenguajes">
+    <string-array name="docTypes">
         <item>DNI</item>
         <item>RUC</item>
     </string-array>
@@ -32,4 +32,6 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="politicas">Políticas de privacidad</string>
+    <string name="title_activity_maps">MapsActivity</string>
+    <string name="libroReclamaciones">Libro de reclamaciones</string>
 </resources>

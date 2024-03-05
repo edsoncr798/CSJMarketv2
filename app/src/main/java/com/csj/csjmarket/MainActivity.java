@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         else if (id == R.id.action_contactUs){
-            String msj = "Hola Comercializadora San Juan, deseo dar una sugerencia.";
+            String msj = "Hola Comercializadora San Juan";
             String numeroTel = "+51965877767";
 
             try {

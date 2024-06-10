@@ -24,6 +24,16 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical">
 
+                <TextView
+                    android:id="@+id/txtBienvenida"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Hola Iris, ¿qué compramos hoy?"
+                    android:textAlignment="center"
+                    android:textSize="15sp"
+                    android:padding="10dp"
+                    android:textColor="@color/white"/>
+
                 <org.imaginativeworld.whynotimagecarousel.ImageCarousel
                     android:id="@+id/carousel"
                     android:layout_width="match_parent"
@@ -38,15 +48,15 @@
                     app:carouselType="SHOWCASE"
                     app:carouselGravity="CENTER"
                     app:scaleOnScroll="true"
-                    app:carouselBackground="#FFFFFF"
                     app:showTopShadow="false"
                     app:showBottomShadow="false"
                     app:imageScaleType="fitXY"/>
 
-                <ListView
+                <!--<ListView
                     android:id="@+id/lvProveedores"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"/>
+                    -->
             </LinearLayout>
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
@@ -86,34 +96,80 @@
                     android:background="@null"
                     android:ems="10"
                     android:hint="Búsqueda"
+                    android:imeOptions="actionDone"
                     android:inputType="textPersonName"
-                    android:textSize="14sp"/>
+                    android:textSize="14sp" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone">
+            android:layout_height="wrap_content">
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingHorizontal="10dp">
-                <TextView
+                android:padding="10dp">
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Resultados"
-                    android:layout_gravity="left"
-                    android:layout_weight="1"/>
+                    android:layout_weight="1">
+                    <TextView
+                        android:id="@+id/txtNumeroProductos"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="500"
+                        android:layout_gravity="left"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" resultados"/>
+                </LinearLayout>
 
-                <TextView
+                <LinearLayout
+                    android:id="@+id/layoutBorrarFiltro"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:pointerIcon="hand"
-                    android:text="hola"
-                    android:layout_gravity="right"
-                    android:layout_weight="1"/>
+                    android:layout_weight="1"
+                    android:pointerIcon="hand">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Borrar filtro"
+                        android:textAlignment="center"
+                        android:textColor="@color/visanet_red"
+                        android:layout_weight="1"/>
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:id="@+id/layoutFiltro"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:pointerIcon="hand">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Filtrar "
+                        android:textColor="@color/blue"
+                        android:layout_gravity="center"
+                        android:gravity="right"
+                        android:layout_weight="1"/>
+                    <TextView
+                        android:id="@+id/txtFiltro"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/blue"
+                        android:layout_gravity="center"
+                        android:text="(0)"/>
+                    <ImageView
+                        android:layout_gravity="center"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_baseline_keyboard_arrow_down_24"/>
+                </LinearLayout>
+
             </LinearLayout>
 
         </androidx.cardview.widget.CardView>

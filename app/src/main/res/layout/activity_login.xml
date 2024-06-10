@@ -62,6 +62,57 @@
         android:orientation="vertical"
         android:padding="15dp">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/estilo_boton_google"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/login_btnGoogle"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:drawableLeft="@drawable/google_color_svgrepo_com"
+                android:background="@drawable/ripple"
+                android:text="Acceder con Google"
+                android:paddingEnd="50dp"
+                android:textStyle="bold"
+                android:inputType="textCapWords"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center">
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_weight="1"
+                android:background="@android:color/darker_gray"
+                android:layout_gravity="center"
+                android:visibility="visible"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:text="O"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_weight="1"
+                android:background="@android:color/darker_gray"
+                android:visibility="visible"/>
+        </LinearLayout>
+
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/login_tilCorreo"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -140,56 +191,6 @@
             android:textStyle="bold"
             android:textSize="12sp"/>
 
-        <LinearLayout
-            android:layout_marginTop="10dp"
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center">
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_weight="1"
-                android:background="@android:color/darker_gray"
-                android:layout_gravity="center"
-                android:visibility="visible"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="10dp"
-                android:text="O"
-                android:gravity="center"
-                android:layout_gravity="center"/>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_weight="1"
-                android:background="@android:color/darker_gray"
-                android:visibility="visible"/>
-        </LinearLayout>
-
-
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:background="@drawable/estilo_boton_google"
-            android:orientation="vertical">
-
-            <Button
-                android:id="@+id/login_btnGoogle"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/google_color_svgrepo_com"
-                android:background="@drawable/ripple"
-                android:text="Acceder con Google"
-                android:paddingEnd="50dp"
-                android:textStyle="bold"
-                android:inputType="textCapWords"/>
-        </LinearLayout>
 
 
 

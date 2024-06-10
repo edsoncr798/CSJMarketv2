@@ -15,6 +15,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
@@ -26,6 +27,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.EditText;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonArrayRequest;
@@ -40,9 +42,13 @@ import com.csj.csjmarket.modelos.CantidadBanner;
 import com.csj.csjmarket.modelos.Categorias;
 import com.csj.csjmarket.modelos.MiCarrito;
 import com.csj.csjmarket.modelos.Producto;
+import com.csj.csjmarket.modelos.filtroCategorias;
+import com.csj.csjmarket.modelos.filtroProveedor;
 import com.csj.csjmarket.ui.adaptadores.ImageAdapter;
 import com.csj.csjmarket.ui.adaptadores.ProductoAdapter;
 import com.csj.csjmarket.ui.adaptadores.categoriaAdapter;
+import com.csj.csjmarket.ui.adaptadores.itemFiltroCategoriaAdapter;
+import com.csj.csjmarket.ui.adaptadores.itemFiltroProveedorAdapter;
 import com.csj.csjmarket.ui.adaptadores.proveedorAdapter;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -58,10 +64,18 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class inicio extends Fragment {
+public class inicio extends Fragment implements itemFiltroProveedorAdapter.OnItemChangedListener{
 
     private ArrayList<Producto> productos = new ArrayList<>();
     private ArrayList<Producto> productosFiltrado = new ArrayList<>();
+    private ArrayList<Producto> productosFiltradoProv = new ArrayList<>();;
+    //private ArrayList<filtroCategorias> filtroCategorias = new ArrayList<>();
+    private ArrayList<filtroProveedor> filtroProveedores = new ArrayList<>();
+    private ArrayList<filtroProveedor> filtroProveedoresTmp = new ArrayList<>();
+    private ArrayList<filtroProveedor> filtroProveedoresSel = new ArrayList<>();
+    private Double filtroDesde = 0.0;
+    private Double filtroHasta = 0.0;
+
     private FragmentInicioBinding binding;
     private AlertDialog alertDialog;
     private Gson gson = new Gson();
@@ -95,7 +109,7 @@ public class inicio extends Fragment {
         binding.rvListaProducto.setLayoutManager(layoutManager);
 
         mostrarCarrousel(view.getContext());
-        obtenerProveedores(view.getContext());
+        //obtenerProveedores(view.getContext());
         recargar(view.getContext());
 
         binding.txtBuscarProducto.addTextChangedListener(new validacionTextWatcher(binding.txtBuscarProducto));
@@ -116,7 +130,39 @@ public class inicio extends Fragment {
             lastVisibleItemPosition = savedInstanceState.getInt("lastVisibleItemPosition", 0);
         }
 
+        binding.layoutFiltro.setOnClickListener(view1 -> {
+            if (filtroProveedores.size() == 0){
+                cargarProveedorFiltro(view.getContext());
+            }
+            else{
+                mostrarFiltro();
+            }
+        });
+
+        binding.layoutBorrarFiltro.setOnClickListener(view1 -> {
+            filtroProveedoresSel = new ArrayList<>();
+            filtroProveedoresTmp = new ArrayList<>();
+            filtroHasta = 0.0;
+            filtroDesde = 0.0;
+
+            for (filtroProveedor tmp: filtroProveedores) {
+                tmp.setEstado(false);
+            }
+
+            binding.txtFiltro.setText("(" + filtroProveedoresSel.size() + ")");
+
+            ProductoAdapter productoAdapter = new ProductoAdapter(productos);
+            binding.rvListaProducto.setAdapter(productoAdapter);
+            binding.txtNumeroProductos.setText(((Integer) productos.size()).toString());
+            productoAdapter.notifyDataSetChanged();
+        });
+
         return view;
+    }
+
+    @Override
+    public void onItemChanged(ArrayList<filtroProveedor> nuevoFiltro) {
+        filtroProveedoresTmp = nuevoFiltro;
     }
 
     public class validacionTextWatcher implements TextWatcher {
@@ -149,7 +195,78 @@ public class inicio extends Fragment {
 
         ProductoAdapter productoAdapter = new ProductoAdapter(productosFiltrado);
         binding.rvListaProducto.setAdapter(productoAdapter);
+        binding.txtNumeroProductos.setText(((Integer) productosFiltrado.size()).toString());
         productoAdapter.notifyDataSetChanged();
+    }
+
+    private void filtrarXCategoria(){
+        if (filtroProveedoresSel.size() == 0){
+            productosFiltrado = productos;
+
+            if (filtroDesde > 0){
+                if (filtroHasta > 0){
+                    productosFiltrado = (ArrayList<Producto>) productosFiltrado
+                            .stream()
+                            .filter(x -> x.getPrecioUnidadBase() >= filtroDesde && x.getPrecioUnidadBase() <= filtroHasta)
+                            .collect(Collectors.toList());
+                }
+                else{
+                    productosFiltrado = (ArrayList<Producto>) productosFiltrado
+                            .stream()
+                            .filter(x -> x.getPrecioUnidadBase() >= filtroDesde)
+                            .collect(Collectors.toList());
+                }
+            }
+            else if (filtroHasta > 0){
+                productosFiltrado = (ArrayList<Producto>) productosFiltrado
+                        .stream()
+                        .filter(x -> x.getPrecioUnidadBase() <= filtroHasta)
+                        .collect(Collectors.toList());
+            }
+
+            ProductoAdapter productoAdapter = new ProductoAdapter(productosFiltrado);
+            binding.rvListaProducto.setAdapter(productoAdapter);
+            binding.txtNumeroProductos.setText(((Integer) productosFiltrado.size()).toString());
+            productoAdapter.notifyDataSetChanged();
+        }
+        else{
+            productosFiltrado = new ArrayList<>();
+            productosFiltradoProv = new ArrayList<>();
+            for (filtroProveedor filtro: filtroProveedoresSel) {
+                productosFiltradoProv = (ArrayList<Producto>) productos
+                        .stream()
+                        .filter(x -> x.getIdProveedor() == filtro.getId())
+                        .collect(Collectors.toList());
+
+                productosFiltrado.addAll(productosFiltradoProv);
+            }
+
+            if (filtroDesde > 0){
+                if (filtroHasta > 0){
+                    productosFiltrado = (ArrayList<Producto>) productosFiltrado
+                            .stream()
+                            .filter(x -> x.getPrecioUnidadBase() >= filtroDesde && x.getPrecioUnidadBase() <= filtroHasta)
+                            .collect(Collectors.toList());
+                }
+                else{
+                    productosFiltrado = (ArrayList<Producto>) productosFiltrado
+                            .stream()
+                            .filter(x -> x.getPrecioUnidadBase() >= filtroDesde)
+                            .collect(Collectors.toList());
+                }
+            }
+            else if (filtroHasta > 0){
+                productosFiltrado = (ArrayList<Producto>) productosFiltrado
+                        .stream()
+                        .filter(x -> x.getPrecioUnidadBase() <= filtroHasta)
+                        .collect(Collectors.toList());
+            }
+
+            ProductoAdapter productoAdapter = new ProductoAdapter(productosFiltrado);
+            binding.rvListaProducto.setAdapter(productoAdapter);
+            binding.txtNumeroProductos.setText(((Integer) productosFiltrado.size()).toString());
+            productoAdapter.notifyDataSetChanged();
+        }
     }
 
     private void recargar(Context context) {
@@ -162,7 +279,40 @@ public class inicio extends Fragment {
             ProductoAdapter productoAdapter = new ProductoAdapter(productos);
             binding.rvListaProducto.setAdapter(productoAdapter);
             productoAdapter.notifyDataSetChanged();
+            binding.txtNumeroProductos.setText(((Integer) productos.size()).toString());
             alertDialog.dismiss();
+        }, error -> {
+            alertDialog.dismiss();
+            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\n\nDetalle:"+ error.toString());
+        });
+        Volley.newRequestQueue(context).add(jsonArrayRequest);
+    }
+
+    /*private void cargarCategoriaFiltro(Context context) {
+        mostrarLoader();
+        String url = getString(R.string.connection) + "/api/filtrocategorias";
+        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null, response -> {
+            Type categoriaFiltroType = new TypeToken<List<filtroCategorias>>() {
+            }.getType();
+            filtroCategorias = gson.fromJson(response.toString(), categoriaFiltroType);
+            alertDialog.dismiss();
+            mostrarFiltro();
+        }, error -> {
+            alertDialog.dismiss();
+            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\n\nDetalle:"+ error.toString());
+        });
+        Volley.newRequestQueue(context).add(jsonArrayRequest);
+    }*/
+
+    private void cargarProveedorFiltro(Context context) {
+        mostrarLoader();
+        String url = getString(R.string.connection) + "/api/filtroproveedor";
+        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null, response -> {
+            Type proveedorFiltroType = new TypeToken<List<filtroProveedor>>() {
+            }.getType();
+            filtroProveedores = gson.fromJson(response.toString(), proveedorFiltroType);
+            alertDialog.dismiss();
+            mostrarFiltro();
         }, error -> {
             alertDialog.dismiss();
             mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\n\nDetalle:"+ error.toString());
@@ -208,7 +358,7 @@ public class inicio extends Fragment {
         Volley.newRequestQueue(context).add(jsonObjectRequest);
     }
 
-    private void obtenerProveedores(Context context) {
+    /*private void obtenerProveedores(Context context) {
         String url = getString(R.string.connection) + "/api/categorias";
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null, response -> {
             Type categoriaType = new TypeToken<List<Categorias>>() {
@@ -234,7 +384,7 @@ public class inicio extends Fragment {
             alertDialog.dismiss();
         });
         Volley.newRequestQueue(context).add(jsonArrayRequest);
-    }
+    }*/
 
     private void mostrarLoader() {
         AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
@@ -256,10 +406,63 @@ public class inicio extends Fragment {
         alertDialog.show();
     }
 
+    private void mostrarFiltro(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+        View view = getLayoutInflater().inflate(R.layout.dialogo_filtro, null);
+        EditText txtDesde = view.findViewById(R.id.filtro_txtDesde);
+        EditText txtHasta = view.findViewById(R.id.filtro_txtHasta);
+        RecyclerView rvCategoria = view.findViewById(R.id.filtro_rvCategoria);
+        LinearLayoutManager linearLayoutManager = new GridLayoutManager(view.getContext(), 1, LinearLayoutManager.VERTICAL, false);
+        rvCategoria.setLayoutManager(linearLayoutManager);
+        if (filtroDesde <= 0){
+            txtDesde.setText("");
+        }else{
+            txtDesde.setText(filtroDesde.toString());
+        }
+
+        if (filtroHasta <= 0){
+            txtHasta.setText("");
+        }else{
+            txtHasta.setText(filtroHasta.toString());
+        }
+
+        //itemFiltroCategoriaAdapter filtroCategoriaAdapter = new itemFiltroCategoriaAdapter(filtroCategorias);
+        itemFiltroProveedorAdapter filtroProveedorAdapter = new itemFiltroProveedorAdapter(filtroProveedores);
+        filtroProveedorAdapter.setOnItemChangedListener(this);
+
+        rvCategoria.setAdapter(filtroProveedorAdapter);
+        filtroProveedorAdapter.notifyDataSetChanged();
+
+        builder.setView(view).setPositiveButton("Aceptar", (dialogInterface, i) -> {
+            //AplicarFiltros
+            filtroProveedoresSel = filtroProveedoresTmp;
+
+            if (txtDesde.getText().toString().equals("")){
+                filtroDesde = 0.0;
+            }else {
+                filtroDesde = Double.parseDouble(txtDesde.getText().toString());
+            }
+
+            if (txtHasta.getText().toString().equals("")){
+                filtroHasta = 0.0;
+            }else {
+                filtroHasta = Double.parseDouble(txtHasta.getText().toString());
+            }
+
+            filtrarXCategoria();
+            binding.txtFiltro.setText("(" + filtroProveedoresSel.size() + ")");
+            alertDialog.dismiss();
+        }).setNegativeButton("Cancelar", (dialogInterface, i) -> {
+            alertDialog.dismiss();
+        }).setCancelable(false);
+
+        alertDialog = builder.create();
+        alertDialog.show();
+    }
     @Override
     public void onStart() {
         super.onStart();
-
+        binding.txtBienvenida.setText("Hola " + bundle.getString("primerNombre") + ", ¿Qué compramos hoy?");
     }
 
     @Override

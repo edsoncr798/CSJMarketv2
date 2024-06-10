@@ -10,8 +10,8 @@ android {
         applicationId "com.csj.csjmarket"
         minSdk 27
         targetSdk 33
-        versionCode 25
-        versionName "1.15"
+        versionCode 28
+        versionName "1.18"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

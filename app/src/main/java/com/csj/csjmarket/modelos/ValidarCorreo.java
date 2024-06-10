@@ -6,6 +6,7 @@ public class ValidarCorreo implements Serializable {
     private Integer id;
     private String docIdentidad;
     private Integer diasUltimaCompra;
+    private String primerNombre;
 
     public Integer getId() {
         return id;
@@ -17,5 +18,9 @@ public class ValidarCorreo implements Serializable {
 
     public Integer getDiasUltimaCompra() {
         return diasUltimaCompra;
+    }
+
+    public String getPrimerNombre() {
+        return primerNombre;
     }
 }

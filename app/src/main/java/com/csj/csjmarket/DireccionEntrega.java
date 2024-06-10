@@ -1,5 +1,6 @@
 package com.csj.csjmarket;
 
+import static android.content.ContentValues.TAG;
 import static com.android.volley.Response.error;
 import static com.android.volley.Response.success;
 
@@ -7,9 +8,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,6 +27,7 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.JsonRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.csj.csjmarket.databinding.ActivityDireccionEntregaBinding;
 import com.csj.csjmarket.modelos.CabeceraPedido;
@@ -35,11 +39,14 @@ import com.csj.csjmarket.modelos.RespuestaPedido;
 import com.csj.csjmarket.modelos.niubiz.error;
 import com.csj.csjmarket.modelos.niubiz.keySuccess;
 import com.csj.csjmarket.ui.adaptadores.itemDireccionAdapter;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -74,6 +81,7 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
     private SharedPreferences sharedPreferences;
     private ArrayList<MiCarrito> carrito;
     private RespuestaPedido respuestaPedido;
+    private FirebaseAuth mAuth;
 
     private String comercio = "650237824";
     //650237824
@@ -97,6 +105,8 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
         binding = ActivityDireccionEntregaBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        mAuth = FirebaseAuth.getInstance();
+
         montoTotal = getIntent().getDoubleExtra("totalVenta", 0.0);
         idPersona = getIntent().getStringExtra("idPersona");
         email = getIntent().getStringExtra("email");
@@ -113,8 +123,6 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
             intent.putExtra("idPersona", idPersona);
             startActivity(intent);
         });
-
-
     }
 
     private void mostrarLoader() {
@@ -138,10 +146,11 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
     }
 
     private void mostrarMensaje() {
+        FirebaseUser user = mAuth.getCurrentUser();
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setIcon(R.drawable.ic_baseline_good);
         builder.setTitle("Aviso");
-        builder.setMessage("Su pedido se guardo exitosamente. El número de pedido generado es: " + respuestaPedido.getNumCp());
+        builder.setMessage("");
         builder.setPositiveButton("Aceptar", (dialogInterface, i) -> {
             finish();
         });
@@ -151,6 +160,7 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
     }
 
     private void mostrarRegistro(){
+        FirebaseUser user = mAuth.getCurrentUser();
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.dialogo_registro, null);
         TextView txtNumPedidoNiubiz = view.findViewById(R.id.dr_txtNumPedidoNiubiz);
@@ -158,8 +168,13 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
         TextView txtFechaHora = view.findViewById(R.id.dr_txtFechaHora);
         TextView txtImporte = view.findViewById(R.id.dr_txtImporte);
         TextView txtTarjeta = view.findViewById(R.id.dr_txtTarjeta);
-        txtNumPedidoNiubiz.setText(visanetPurchase);
+        TextView txtMensaje = view.findViewById(R.id.dr_txtMensaje);
+        TextView numOpe = view.findViewById(R.id.dr_NumPedido);
+        TextView tarjeta = view.findViewById(R.id.dr_tarjeta);
+        TextView importe = view.findViewById(R.id.dr_importe);
+
         txtNumPedido.setText(respuestaPedido.getNumCp());
+
         SimpleDateFormat inputDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
         SimpleDateFormat outputDateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         Date date = null;
@@ -170,8 +185,21 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
         }
         String formattedDate = outputDateFormat.format(date);
         txtFechaHora.setText(formattedDate);
-        txtImporte.setText(fromJsonSuccess.getOrder().getAuthorizedAmount().toString() + " " + fromJsonSuccess.getOrder().getCurrency());
-        txtTarjeta.setText(fromJsonSuccess.getDataMap().getBRAND() + " " + fromJsonSuccess.getDataMap().getCARD());
+        if (fromJsonSuccess != null){
+            txtNumPedidoNiubiz.setText(visanetPurchase);
+            txtImporte.setText(fromJsonSuccess.getOrder().getAuthorizedAmount().toString() + " " + fromJsonSuccess.getOrder().getCurrency());
+            txtTarjeta.setText(fromJsonSuccess.getDataMap().getBRAND() + " " + fromJsonSuccess.getDataMap().getCARD());
+        }
+        else{
+            numOpe.setVisibility(View.GONE);
+            tarjeta.setVisibility(View.GONE);
+            importe.setVisibility(View.GONE);
+            txtNumPedidoNiubiz.setVisibility(View.GONE);
+            txtImporte.setVisibility(View.GONE);
+            txtTarjeta.setVisibility(View.GONE);
+        }
+
+        txtMensaje.setText("Hemos enviado un mensaje de correo electrónico a " + user.getEmail() + " con el detalle de su pedido. Por favor, compruebe su bandeja de entrada.");
 
         builder.setView(view).setPositiveButton("Aceptar", (dialogInterface, i) -> {finish();})
                 .setCancelable(false);
@@ -239,6 +267,31 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
         alertDialog.show();
     }
 
+    private void mostrarMedioPago(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = getLayoutInflater().inflate(R.layout.dialogo_medio_de_pago, null);
+        RadioButton rbEnLinea = view.findViewById(R.id.mp_rbEnLinea);
+        Button btnContinuar = view.findViewById(R.id.mp_btnContinuar);
+
+        btnContinuar.setOnClickListener(view1 -> {
+            alertDialog.dismiss();
+
+            if (rbEnLinea.isChecked()) {
+                cabeceraPedido.setTipoCp(4411);
+                obtenerVISANET_PURCHASE();
+            } else {
+                cabeceraPedido.setTipoCp(4415);
+                mostrarLoader();
+                enviarPedido();
+            }
+        });
+
+        builder.setView(view);
+
+        alertDialog = builder.create();
+        alertDialog.show();
+    }
+
     private void recargar() {
         mostrarLoader();
         String url = getString(R.string.connection) + "/api/cliente/direcciones?idPersona="+getIntent().getStringExtra("idPersona");
@@ -260,7 +313,7 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
     }
 
     private void enviarPedido(){
-        String url = getString(R.string.connection) + "/api/pedido/Nuevo";
+        String url = getString(R.string.connection) + "/api/pedido/NuevoActual";
         Gson gson = new Gson();
         JSONObject jsonBody = null;
         try {
@@ -284,11 +337,13 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
             }
             pedidoNuevo.setItemPedidos(itemsPedido);
             jsonBody = new JSONObject(gson.toJson(pedidoNuevo));
+
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, url, jsonBody, response -> {
                 Type productListType = new TypeToken<RespuestaPedido>() {
                 }.getType();
-                respuestaPedido = gson.fromJson(response.toString(), productListType);
 
+                this.respuestaPedido = gson.fromJson(response.toString(), productListType);
+                enviarCorreo(this.respuestaPedido.getIdCp());
                 alertDialog.dismiss();
                 sharedPreferences.edit().clear().commit();
                 mostrarRegistro();
@@ -366,6 +421,10 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
             }
             jsonBody = new JSONArray(gson.toJson(itemsPedido));
             JsonArrayRequest jsonObjectRequest = new JsonArrayRequest(Request.Method.POST, url, jsonBody, response -> {
+                Type rpPedido = new TypeToken<RespuestaPedido>() {
+                }.getType();
+                respuestaPedido = gson.fromJson(response.toString(), rpPedido);
+                enviarCorreo(respuestaPedido.getIdCp());
                 alertDialog.dismiss();
                 sharedPreferences.edit().clear().commit();
                 mostrarRegistro();
@@ -401,7 +460,8 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
         cabeceraPedido.setIdDireccionEntrega(idDireccion);
         //crearPedido(); METODO ANTIGUO PARA GUARDAR PEDIDO
         //enviarPedido();
-        obtenerVISANET_PURCHASE();
+        mostrarMedioPago();
+        //obtenerVISANET_PURCHASE();
     }
 
     private class generarToken extends AsyncTask<Void, Void, String> {
@@ -635,6 +695,24 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
                 Toast toast1 = Toast.makeText(getApplicationContext(), "Cancel...", Toast.LENGTH_LONG);
                 toast1.show();
             }
+        }
+    }
+
+    private void enviarCorreo(int idCp) {
+        String url = getString(R.string.connection) + "/EnviarCorreo/?idCp="+ idCp;
+
+        try {
+            StringRequest jsonObjectRequest = new StringRequest(Request.Method.GET, url,response -> {
+                Log.d(TAG, "enviarCorreo: Correo OK");
+            }, error -> {
+                alertDialog.dismiss();
+                mostrarAlerta("Error al guardar el pedido.\nDetalle: " + error.toString());
+            });
+
+            Volley.newRequestQueue(getApplicationContext()).add(jsonObjectRequest);
+        } catch (Exception e) {
+            alertDialog.dismiss();
+            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\nDetalle: " + e.getMessage());
         }
     }
 

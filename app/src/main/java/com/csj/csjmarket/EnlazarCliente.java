@@ -420,7 +420,7 @@ public class EnlazarCliente extends AppCompatActivity {
     }
 
     private void acceder(String correo, String nombre) {
-        String url = getString(R.string.connection) + "/api/validarCorreos?correo=" + correo;
+        String url = getString(R.string.connection) + "/api/validarCorreos/nuevo/?correo=" + correo;
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, response -> {
             Gson gson = new Gson();
             Type validartListType = new TypeToken<ValidarCorreo>() {

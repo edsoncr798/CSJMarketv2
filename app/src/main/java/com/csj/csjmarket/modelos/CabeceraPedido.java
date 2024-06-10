@@ -5,6 +5,11 @@ public class CabeceraPedido {
     private int idDireccionEntrega;
     private double totalVenta;
     private double totalPeso;
+    private int tipoCp;
+
+    public void setTipoCp(int tipoCp) {
+        this.tipoCp = tipoCp;
+    }
 
     public void setIdPersona(int idPersona) {
         this.idPersona = idPersona;

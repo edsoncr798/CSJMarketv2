@@ -17,6 +17,7 @@
         android:text="Su pedido se guardo exitosamente, por favor guarde la siguiente información."/>
 
     <TextView
+        android:id="@+id/dr_NumPedido"
         android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -62,6 +63,7 @@
         android:textColor="@color/secondary"/>
 
     <TextView
+        android:id="@+id/dr_importe"
         android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -77,6 +79,7 @@
         android:textColor="@color/secondary"/>
 
     <TextView
+        android:id="@+id/dr_tarjeta"
         android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -90,4 +93,11 @@
         android:text="visa 000000******0000"
         android:textSize="14sp"
         android:textColor="@color/secondary"/>
+
+    <TextView
+        android:id="@+id/dr_txtMensaje"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Hemos enviado un mensaje de correo electrónico"/>
 </LinearLayout>

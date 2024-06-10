@@ -66,7 +66,7 @@
                         <Button
                             android:id="@+id/icarrito_btnDisminuir"
                             android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_height="50dp"
                             android:background="?android:attr/selectableItemBackgroundBorderless"
                             android:text="-"
                             android:textColor="@color/black" />
@@ -75,7 +75,7 @@
                             android:id="@+id/icarrito_txtCantidad"
                             android:layout_width="match_parent"
                             android:layout_weight="1"
-                            android:layout_height="40dp"
+                            android:layout_height="50dp"
                             android:textSize="18sp"
                             android:layout_gravity="center"
                             android:inputType="number"
@@ -85,7 +85,7 @@
                         <Button
                             android:id="@+id/icarrito_btnAumentar"
                             android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_height="50dp"
                             android:background="?android:attr/selectableItemBackgroundBorderless"
                             android:text="+"
                             android:textColor="@color/black" />
@@ -111,7 +111,6 @@
         </LinearLayout>
 
     </LinearLayout>
-
     <LinearLayout
         android:id="@+id/contenedorOpciones"
         android:layout_width="match_parent"

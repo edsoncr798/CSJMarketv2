@@ -87,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
                         bundle.putString("docIden", validarCorreo.getDocIdentidad());
                         bundle.putString("diasUltCompra", validarCorreo.getDiasUltimaCompra().toString());
                         bundle.putString("nombre", nombreUsuario);
+                        bundle.putString("primerNombre", validarCorreo.getPrimerNombre());
                         break;
                     case R.id.nav_voucher:
                         bundle.putString("id", validarCorreo.getId().toString());

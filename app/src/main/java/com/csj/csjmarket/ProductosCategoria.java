@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
@@ -129,7 +130,14 @@ public class ProductosCategoria extends AppCompatActivity {
             alertDialog.dismiss();
         }, error -> {
             alertDialog.dismiss();
-            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente. Si el problema persiste póngase en contacto con el desarrollador.\n\nDetalle:"+ error.toString());
+            NetworkResponse networkResponse = error.networkResponse;
+            if (networkResponse!= null){
+                String errorMessage = new String(networkResponse.data);
+                mostrarAlerta(errorMessage);
+            }
+            else{
+                mostrarAlerta(error.toString());
+            }
         });
         Volley.newRequestQueue(context).add(jsonArrayRequest);
     }

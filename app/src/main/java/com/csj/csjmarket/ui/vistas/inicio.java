@@ -29,6 +29,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.EditText;
 
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -42,6 +43,7 @@ import com.csj.csjmarket.modelos.CantidadBanner;
 import com.csj.csjmarket.modelos.Categorias;
 import com.csj.csjmarket.modelos.MiCarrito;
 import com.csj.csjmarket.modelos.Producto;
+import com.csj.csjmarket.modelos.ValidarCorreo;
 import com.csj.csjmarket.modelos.filtroCategorias;
 import com.csj.csjmarket.modelos.filtroProveedor;
 import com.csj.csjmarket.ui.adaptadores.ImageAdapter;
@@ -89,7 +91,7 @@ public class inicio extends Fragment implements itemFiltroProveedorAdapter.OnIte
     private int currentPage = 0;
     private Handler handler;
     private final int delay = 4000;
-    private Bundle bundle;
+    private ValidarCorreo validarCorreo;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -103,7 +105,8 @@ public class inicio extends Fragment implements itemFiltroProveedorAdapter.OnIte
         view = binding.getRoot();
 
         sharedPreferences = view.getContext().getSharedPreferences("carritoInfo", MODE_PRIVATE);
-        bundle = getArguments();
+
+        validarCorreo = (ValidarCorreo) getActivity().getIntent().getSerializableExtra("validarCorreo");
 
         layoutManager = new GridLayoutManager(view.getContext(), 2, LinearLayoutManager.VERTICAL, false);
         binding.rvListaProducto.setLayoutManager(layoutManager);
@@ -118,11 +121,11 @@ public class inicio extends Fragment implements itemFiltroProveedorAdapter.OnIte
 
         binding.fab.setOnClickListener(view1 -> {
             Intent intent = new Intent(view.getContext(), Carrito.class);
-            intent.putExtra("idPersona", bundle.getString("id"));
-            intent.putExtra("email", bundle.getString("email"));
-            intent.putExtra("docIden", bundle.getString("docIden"));
-            intent.putExtra("diasUltCompra", bundle.getString("diasUltCompra"));
-            intent.putExtra("nombre", bundle.getString("nombre"));
+            intent.putExtra("idPersona",validarCorreo.getId().toString());
+            intent.putExtra("email", getActivity().getIntent().getStringExtra("correo"));
+            intent.putExtra("docIden", validarCorreo.getDocIdentidad());
+            intent.putExtra("diasUltCompra", validarCorreo.getDiasUltimaCompra());
+            intent.putExtra("nombre", validarCorreo.getPrimerNombre());
             view.getContext().startActivity(intent);
         });
 
@@ -181,7 +184,8 @@ public class inicio extends Fragment implements itemFiltroProveedorAdapter.OnIte
         public void afterTextChanged(Editable editable) {
             switch (view.getId()) {
                 case R.id.txtBuscarProducto:
-                    filtrarXNombre();
+                    //filtrarXNombre();
+                    filtrarXCategoria();
                     break;
             }
         }
@@ -224,6 +228,13 @@ public class inicio extends Fragment implements itemFiltroProveedorAdapter.OnIte
                         .collect(Collectors.toList());
             }
 
+            if (binding.txtBuscarProducto.getText().length() > 0){
+                productosFiltrado = (ArrayList<Producto>) productosFiltrado
+                        .stream()
+                        .filter(x -> x.getNombre().toUpperCase().contains(binding.txtBuscarProducto.getText().toString().toUpperCase()))
+                        .collect(Collectors.toList());
+            }
+
             ProductoAdapter productoAdapter = new ProductoAdapter(productosFiltrado);
             binding.rvListaProducto.setAdapter(productoAdapter);
             binding.txtNumeroProductos.setText(((Integer) productosFiltrado.size()).toString());
@@ -262,6 +273,13 @@ public class inicio extends Fragment implements itemFiltroProveedorAdapter.OnIte
                         .collect(Collectors.toList());
             }
 
+            if (binding.txtBuscarProducto.getText().length() > 0){
+                productosFiltrado = (ArrayList<Producto>) productosFiltrado
+                        .stream()
+                        .filter(x -> x.getNombre().toUpperCase().contains(binding.txtBuscarProducto.getText().toString().toUpperCase()))
+                        .collect(Collectors.toList());
+            }
+
             ProductoAdapter productoAdapter = new ProductoAdapter(productosFiltrado);
             binding.rvListaProducto.setAdapter(productoAdapter);
             binding.txtNumeroProductos.setText(((Integer) productosFiltrado.size()).toString());
@@ -283,7 +301,14 @@ public class inicio extends Fragment implements itemFiltroProveedorAdapter.OnIte
             alertDialog.dismiss();
         }, error -> {
             alertDialog.dismiss();
-            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\n\nDetalle:"+ error.toString());
+            NetworkResponse networkResponse = error.networkResponse;
+            if (networkResponse!= null){
+                String errorMessage = new String(networkResponse.data);
+                mostrarAlerta(errorMessage);
+            }
+            else{
+                mostrarAlerta(error.toString());
+            }
         });
         Volley.newRequestQueue(context).add(jsonArrayRequest);
     }
@@ -315,7 +340,14 @@ public class inicio extends Fragment implements itemFiltroProveedorAdapter.OnIte
             mostrarFiltro();
         }, error -> {
             alertDialog.dismiss();
-            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\n\nDetalle:"+ error.toString());
+            NetworkResponse networkResponse = error.networkResponse;
+            if (networkResponse!= null){
+                String errorMessage = new String(networkResponse.data);
+                mostrarAlerta(errorMessage);
+            }
+            else{
+                mostrarAlerta(error.toString());
+            }
         });
         Volley.newRequestQueue(context).add(jsonArrayRequest);
     }
@@ -462,7 +494,7 @@ public class inicio extends Fragment implements itemFiltroProveedorAdapter.OnIte
     @Override
     public void onStart() {
         super.onStart();
-        binding.txtBienvenida.setText("Hola " + bundle.getString("primerNombre") + ", ¿Qué compramos hoy?");
+        binding.txtBienvenida.setText("Hola " + validarCorreo.getPrimerNombre() + ", ¿Qué compramos hoy?");
     }
 
     @Override
@@ -491,7 +523,8 @@ public class inicio extends Fragment implements itemFiltroProveedorAdapter.OnIte
                 layoutManager.scrollToPosition(lastVisibleItemPosition);
             }
 
-            filtrarXNombre();
+            filtrarXCategoria();
+            //filtrarXNombre();
 
             carritoString = sharedPreferences.getString("carrito", "");
             if (!carritoString.isEmpty()){

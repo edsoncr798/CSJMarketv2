@@ -23,6 +23,8 @@
             android:src="@drawable/ic_baseline_arrow_back_24" />
     </androidx.cardview.widget.CardView>
 
+    <!--
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -40,12 +42,12 @@
             map:uiZoomControls="true"/>
 
     </LinearLayout>
-
+-->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
         android:orientation="vertical"
+        android:layout_marginTop="50dp"
         android:padding="15dp">
 
         <com.google.android.material.textfield.TextInputLayout
@@ -61,6 +63,7 @@
                 android:id="@+id/maps_txtDireccion"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:hint="Dirección de entrega"
                 android:imeOptions="actionNext" />
         </com.google.android.material.textfield.TextInputLayout>
 

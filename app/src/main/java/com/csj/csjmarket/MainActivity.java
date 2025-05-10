@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -19,6 +20,7 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import com.bumptech.glide.Glide;
 import com.csj.csjmarket.databinding.ActivityMainBinding;
 import com.csj.csjmarket.modelos.ValidarCorreo;
 import com.google.android.material.navigation.NavigationView;
@@ -34,8 +36,9 @@ public class MainActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private TextView txtInicial, txtNombre;
+    private ImageView imagen;
     public ValidarCorreo validarCorreo;
-    private String nombreUsuario, correoUsuario;
+    private String nombreUsuario, correoUsuario, rutaImagen;
 
     private AlertDialog dialogo_creditos;
 
@@ -48,14 +51,20 @@ public class MainActivity extends AppCompatActivity {
 
         nombreUsuario = getIntent().getStringExtra("nombre");
         correoUsuario = getIntent().getStringExtra("correo");
+        rutaImagen = getIntent().getStringExtra("imagen");
         validarCorreo = (ValidarCorreo) getIntent().getSerializableExtra("validarCorreo");
 
         mAuth = FirebaseAuth.getInstance();
 
-        txtInicial = binding.navView.getHeaderView(0).findViewById(R.id.nav_txtInicial);
+        //txtInicial = binding.navView.getHeaderView(0).findViewById(R.id.nav_txtInicial);
+        imagen = binding.navView.getHeaderView(0).findViewById(R.id.nav_imagen);
         txtNombre = binding.navView.getHeaderView(0).findViewById(R.id.nav_txtNombre);
 
-        txtInicial.setText(nombreUsuario.substring(0, 1));
+        //txtInicial.setText(nombreUsuario.substring(0, 1));
+        Glide.with(this)
+                .load(rutaImagen)
+                .placeholder(R.drawable.default_image)
+                .into(imagen);
         txtNombre.setText(nombreUsuario);
 
         setSupportActionBar(binding.appBarMain.toolbar);
@@ -76,9 +85,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDestinationChanged(@NonNull NavController navController, @NonNull NavDestination navDestination, @Nullable Bundle bundle) {
                 switch (navDestination.getId()){
-                    case R.id.nav_profile:
-                        bundle.putString("nombre", nombreUsuario);
-                        bundle.putString("correo", correoUsuario);
+                    /*case R.id.nav_profile:
                         bundle.putString("id", validarCorreo.getId().toString());
                         break;
                     case R.id.nav_inicio:
@@ -91,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case R.id.nav_voucher:
                         bundle.putString("id", validarCorreo.getId().toString());
-                        break;
+                        break;*/
                     case R.id.nav_libroReclamaciones:
                         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://librorec.comsanjuan.com/"));
                         startActivity(intent);
@@ -118,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
             View view = getLayoutInflater().inflate(R.layout.dialogo_creditos, null);
             TextView correo = view.findViewById(R.id.correo);
             correo.setOnClickListener(view1 -> {
-                String[] recipients = {"fausto@ariasdev.com"}; // Agrega la dirección de correo del destinatario aquí
+                String[] recipients = {"fausto@ariasdev.net.pe"}; // Agrega la dirección de correo del destinatario aquí
                 String subject = "Quiero un nuevo sistema"; // Asunto del correo
                 String body = "Quiero un nuevo sistema para mi empresa"; // Contenido del correo
 

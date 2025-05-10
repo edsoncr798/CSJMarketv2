@@ -12,6 +12,7 @@ import android.util.Patterns;
 import android.view.View;
 import android.view.WindowManager;
 
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
@@ -273,7 +274,14 @@ public class RegistrarCorreo extends AppCompatActivity {
             if (alertDialog != null){
                 alertDialog.dismiss();
             }
-            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\nDetalle: " + error.toString());
+            NetworkResponse networkResponse = error.networkResponse;
+            if (networkResponse!= null){
+                String errorMessage = new String(networkResponse.data);
+                mostrarAlerta(errorMessage);
+            }
+            else{
+                mostrarAlerta(error.toString());
+            }
         });
         Volley.newRequestQueue(this).add(jsonObjectRequest);
     }

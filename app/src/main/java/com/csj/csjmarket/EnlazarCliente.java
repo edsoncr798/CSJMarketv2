@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -332,7 +333,14 @@ public class EnlazarCliente extends AppCompatActivity {
             alertDialog.dismiss();
         }, error -> {
             alertDialog.dismiss();
-            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\nDetalle: " + error.toString());
+            NetworkResponse networkResponse = error.networkResponse;
+            if (networkResponse!= null){
+                String errorMessage = new String(networkResponse.data);
+                mostrarAlerta(errorMessage);
+            }
+            else{
+                mostrarAlerta(error.toString());
+            }
         });
         Volley.newRequestQueue(this).add(jsonObjectRequest);
     }
@@ -360,7 +368,14 @@ public class EnlazarCliente extends AppCompatActivity {
 
         }, error -> {
             alertDialog.dismiss();
-            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\nDetalle: " + error.toString());
+            NetworkResponse networkResponse = error.networkResponse;
+            if (networkResponse!= null){
+                String errorMessage = new String(networkResponse.data);
+                mostrarAlerta(errorMessage);
+            }
+            else{
+                mostrarAlerta(error.toString());
+            }
         });
         Volley.newRequestQueue(getApplicationContext()).add(jsonArrayRequest);
     }
@@ -386,7 +401,14 @@ public class EnlazarCliente extends AppCompatActivity {
             }
         }, error -> {
             alertDialog.dismiss();
-            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\nDetalle: " + error.toString());
+            NetworkResponse networkResponse = error.networkResponse;
+            if (networkResponse!= null){
+                String errorMessage = new String(networkResponse.data);
+                mostrarAlerta(errorMessage);
+            }
+            else{
+                mostrarAlerta(error.toString());
+            }
         });
         Volley.newRequestQueue(getApplicationContext()).add(jsonArrayRequest);
     }
@@ -402,7 +424,14 @@ public class EnlazarCliente extends AppCompatActivity {
                 acceder(correoUsuario, nombreUsuario);
             }, error -> {
                 alertDialog.dismiss();
-                mostrarAlerta("Error al guardar el nuevo cliente.\nDetalle: " + error.toString());
+                NetworkResponse networkResponse = error.networkResponse;
+                if (networkResponse!= null){
+                    String errorMessage = new String(networkResponse.data);
+                    mostrarAlerta(errorMessage);
+                }
+                else{
+                    mostrarAlerta(error.toString());
+                }
             }){
                 @Override
                 public Map<String, String> getHeaders() {
@@ -434,7 +463,14 @@ public class EnlazarCliente extends AppCompatActivity {
             }
         }, error -> {
             alertDialog.dismiss();
-            mostrarAlerta(error.toString());
+            NetworkResponse networkResponse = error.networkResponse;
+            if (networkResponse!= null){
+                String errorMessage = new String(networkResponse.data);
+                mostrarAlerta(errorMessage);
+            }
+            else{
+                mostrarAlerta(error.toString());
+            }
         });
         Volley.newRequestQueue(this).add(jsonObjectRequest);
     }

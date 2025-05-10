@@ -307,7 +307,14 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
             alertDialog.dismiss();
         }, error -> {
             alertDialog.dismiss();
-            mostrarAlerta(error.toString());
+            NetworkResponse networkResponse = error.networkResponse;
+            if (networkResponse!= null){
+                String errorMessage = new String(networkResponse.data);
+                mostrarAlerta(errorMessage);
+            }
+            else{
+                mostrarAlerta(error.toString());
+            }
         });
         Volley.newRequestQueue(this).add(jsonArrayRequest);
     }
@@ -350,7 +357,14 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
 
             }, error -> {
                 alertDialog.dismiss();
-                mostrarAlerta("Error al guardar el pedido.\nDetalle: " + error.toString());
+                NetworkResponse networkResponse = error.networkResponse;
+                if (networkResponse!= null){
+                    String errorMessage = new String(networkResponse.data);
+                    mostrarAlerta(errorMessage);
+                }
+                else{
+                    mostrarAlerta(error.toString());
+                }
             }){
                 @Override
                 public Map<String, String> getHeaders() {
@@ -383,7 +397,14 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
                 insertarItemsPedido();
             }, error -> {
                 alertDialog.dismiss();
-                mostrarAlerta("Error al guardar el pedido.\nDetalle: " + error.toString());
+                NetworkResponse networkResponse = error.networkResponse;
+                if (networkResponse!= null){
+                    String errorMessage = new String(networkResponse.data);
+                    mostrarAlerta(errorMessage);
+                }
+                else{
+                    mostrarAlerta(error.toString());
+                }
             }){
                 @Override
                 public Map<String, String> getHeaders() {
@@ -430,7 +451,14 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
                 mostrarRegistro();
             }, error -> {
                 alertDialog.dismiss();
-                mostrarAlerta("Error al guardar los items en el pedido.\nDetalle: " + error.toString());
+                NetworkResponse networkResponse = error.networkResponse;
+                if (networkResponse!= null){
+                    String errorMessage = new String(networkResponse.data);
+                    mostrarAlerta(errorMessage);
+                }
+                else{
+                    mostrarAlerta(error.toString());
+                }
             }){
                 @Override
                 public Map<String, String> getHeaders() {
@@ -591,7 +619,7 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
                 VisaNetViewAuthorizationCustom custom = new VisaNetViewAuthorizationCustom();
                 custom.setLogoImage(R.drawable.logo_csj);
 
-                custom.setButtonColorMerchant(R.color.black);
+                custom.setButtonColorMerchant(lib.visanet.com.pe.visanetlib.R.color.visanet_black);
 
                 try {
                     VisaNet.authorization(DireccionEntrega.this, data, custom);
@@ -617,7 +645,14 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
             if (alertDialog != null) {
                 alertDialog.dismiss();
             }
-            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\nDetalle: " + error.toString());
+            NetworkResponse networkResponse = error.networkResponse;
+            if (networkResponse!= null){
+                String errorMessage = new String(networkResponse.data);
+                mostrarAlerta(errorMessage);
+            }
+            else{
+                mostrarAlerta(error.toString());
+            }
         }) {
             @Override
             protected com.android.volley.Response<Integer> parseNetworkResponse(NetworkResponse response) {
@@ -649,7 +684,14 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
                 enviarPedido();
             }, error -> {
                 alertDialog.dismiss();
-                mostrarAlerta("Error al guardar la respuesta en el servidor.\nDetalle: " + error.toString());
+                NetworkResponse networkResponse = error.networkResponse;
+                if (networkResponse!= null){
+                    String errorMessage = new String(networkResponse.data);
+                    mostrarAlerta(errorMessage);
+                }
+                else{
+                    mostrarAlerta(error.toString());
+                }
             }){
                 @Override
                 public Map<String, String> getHeaders() {
@@ -692,7 +734,7 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
                     }
                 }
             } else {
-                Toast toast1 = Toast.makeText(getApplicationContext(), "Cancel...", Toast.LENGTH_LONG);
+                Toast toast1 = Toast.makeText(getApplicationContext(), "Cancelado...", Toast.LENGTH_LONG);
                 toast1.show();
             }
         }
@@ -706,7 +748,14 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
                 Log.d(TAG, "enviarCorreo: Correo OK");
             }, error -> {
                 alertDialog.dismiss();
-                mostrarAlerta("Error al guardar el pedido.\nDetalle: " + error.toString());
+                NetworkResponse networkResponse = error.networkResponse;
+                if (networkResponse!= null){
+                    String errorMessage = new String(networkResponse.data);
+                    mostrarAlerta(errorMessage);
+                }
+                else{
+                    mostrarAlerta(error.toString());
+                }
             });
 
             Volley.newRequestQueue(getApplicationContext()).add(jsonObjectRequest);

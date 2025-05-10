@@ -55,12 +55,13 @@
 
     </LinearLayout>
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/contenedorBotones"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="15dp">
+        android:paddingHorizontal="15dp"
+        android:layout_gravity="center_vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -68,7 +69,8 @@
             android:layout_marginTop="30dp"
             android:layout_marginBottom="10dp"
             android:background="@drawable/estilo_boton_google"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:layout_centerInParent="true">
 
             <Button
                 android:id="@+id/login_btnGoogle"
@@ -83,6 +85,7 @@
                 android:inputType="textCapWords"/>
         </LinearLayout>
 
+        <!--
         <LinearLayout
             android:layout_marginTop="10dp"
             android:orientation="horizontal"
@@ -191,12 +194,9 @@
             android:textStyle="bold"
             android:textSize="12sp"/>
 
+-->
 
-
-
-    </LinearLayout>
-
-
+    </RelativeLayout>
 
     <!--<TextView
         android:id="@+id/textView"

@@ -1,14 +1,16 @@
 package com.csj.csjmarket;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Patterns;
 import android.view.View;
 import android.view.WindowManager;
+import android.Manifest;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
@@ -17,17 +19,15 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.csj.csjmarket.databinding.ActivityLoginBinding;
-import com.csj.csjmarket.modelos.Producto;
 import com.csj.csjmarket.modelos.ValidarCorreo;
-import com.csj.csjmarket.ui.adaptadores.ProductoAdapter;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -43,14 +43,9 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
-import org.json.JSONArray;
-
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -86,7 +81,9 @@ public class LoginActivity extends AppCompatActivity {
             signIn();
         });
 
-        binding.txtCrearCuenta.setOnClickListener(view -> {
+        solicitarPermisoNotificaciones();
+
+        /*binding.txtCrearCuenta.setOnClickListener(view -> {
             Intent intent = new Intent(LoginActivity.this, RegistrarCorreo.class);
             startActivity(intent);
             finish();
@@ -178,7 +175,36 @@ public class LoginActivity extends AppCompatActivity {
 
         binding.loginTxtCorreo.addTextChangedListener(new validacionTextWatcher(binding.loginTxtCorreo));
         binding.loginTxtPass.addTextChangedListener(new validacionTextWatcher(binding.loginTxtPass));
+*/
     }
+
+    private void solicitarPermisoNotificaciones(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        1);
+            } else {
+                // Permiso ya otorgado, puedes mostrar notificaciones
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permiso concedido
+            } else {
+                // Permiso denegado
+                solicitarPermisoNotificaciones();
+            }
+        }
+    }
+
 
     public class validacionTextWatcher implements TextWatcher {
         private View view;
@@ -195,12 +221,12 @@ public class LoginActivity extends AppCompatActivity {
 
         public void afterTextChanged(Editable editable) {
             switch (view.getId()) {
-                case R.id.login_txtCorreo:
+                /*case R.id.login_txtCorreo:
                     validarFormatoCorreo();
                     break;
                 case R.id.login_txtPass:
                     validarContraseña();
-                    break;
+                    break;*/
             }
         }
     }
@@ -211,7 +237,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private boolean validarFormatoCorreo() {
+    /*private boolean validarFormatoCorreo() {
         String direccionCorreo = binding.loginTxtCorreo.getText().toString().trim();
         if (direccionCorreo.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(direccionCorreo).matches()) {
             binding.loginTilCorreo.setError("Por favor, ingrese un correo electrónico válido.");
@@ -233,7 +259,7 @@ public class LoginActivity extends AppCompatActivity {
             binding.loginTilPass.setErrorEnabled(false);
         }
         return true;
-    }
+    }*/
 
     @Override
     public void onStart() {
@@ -295,7 +321,9 @@ public class LoginActivity extends AppCompatActivity {
     private void updateUI(FirebaseUser user) {
         if (user != null) {
             if (user.isEmailVerified()) {
-                acceder(user.getEmail(), user.getDisplayName() == null || user.getDisplayName() == "" ? user.getEmail() : user.getDisplayName());
+                acceder(user.getEmail(),
+                        user.getDisplayName() == null || user.getDisplayName() == "" ? user.getEmail() : user.getDisplayName(),
+                        user.getPhotoUrl().toString());
             }
             else {
                 if (alertDialog != null){
@@ -315,11 +343,12 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void irMain(String correo, String nombre, ValidarCorreo validarCorreo) {
+    private void irMain(String correo, String nombre, ValidarCorreo validarCorreo, String imagen) {
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         intent.putExtra("correo", correo);
         intent.putExtra("nombre", nombre);
         intent.putExtra("validarCorreo", validarCorreo);
+        intent.putExtra("imagen", imagen);
         startActivity(intent);
         finish();
     }
@@ -352,7 +381,7 @@ public class LoginActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
-    private void acceder(String correo, String nombre) {
+    private void acceder(String correo, String nombre, String imagen) {
         //mostrarLoader();
         //String url = getString(R.string.connection) + "/api/validarCorreos?correo=" + correo;
         String url = getString(R.string.connection) + "/api/validarCorreos/nuevo?correo=" + correo;
@@ -365,7 +394,7 @@ public class LoginActivity extends AppCompatActivity {
                 alertDialog.dismiss();
             }
             if (validarCorreo.getId() != 0) {
-                irMain(correo, nombre, validarCorreo);
+                irMain(correo, nombre, validarCorreo, imagen);
             } else {
                 irEnlazar(correo, nombre);
             }
@@ -373,7 +402,14 @@ public class LoginActivity extends AppCompatActivity {
             if (alertDialog != null){
                 alertDialog.dismiss();
             }
-            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\nDetalle: " + error.toString());
+            NetworkResponse networkResponse = error.networkResponse;
+            if (networkResponse!= null){
+                String errorMessage = new String(networkResponse.data);
+                mostrarAlerta(errorMessage);
+            }
+            else{
+                mostrarAlerta(error.toString());
+            }
         });
         Volley.newRequestQueue(this).add(jsonObjectRequest);
     }

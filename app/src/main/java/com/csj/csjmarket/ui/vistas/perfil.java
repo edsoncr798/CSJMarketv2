@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.bumptech.glide.Glide;
 import com.csj.csjmarket.LoginActivity;
 import com.csj.csjmarket.MainActivity;
 import com.csj.csjmarket.R;
@@ -45,12 +46,17 @@ public class perfil extends Fragment {
         googleSignInClient = GoogleSignIn.getClient(getContext(), gso);
 
         mAuth = FirebaseAuth.getInstance();
-        Bundle bundle = getArguments();
 
-        String nombre = bundle.getString("nombre");
-        binding.perfilTxtInicial.setText(nombre.substring(0, 1));
+        String nombre = getActivity().getIntent().getStringExtra("nombre");
+        String rutaImagen = getActivity().getIntent().getStringExtra("imagen");
+        //binding.perfilTxtInicial.setText(nombre.substring(0, 1));
+
+        Glide.with(this)
+                .load(rutaImagen)
+                .placeholder(R.drawable.default_image)
+                .into(binding.perfilImagen);
         binding.perfilTxtNombre.setText(nombre);
-        binding.perfilTxtCorreo.setText(bundle.getString("correo"));
+        binding.perfilTxtCorreo.setText(getActivity().getIntent().getStringExtra("correo"));
 
         binding.perfilBtnCerrarSesion.setOnClickListener(view1 -> {
             mAuth.signOut();

@@ -34,4 +34,6 @@
     <string name="politicas">Políticas de privacidad</string>
     <string name="title_activity_maps">MapsActivity</string>
     <string name="libroReclamaciones">Libro de reclamaciones</string>
+
+    <string name="default_web_client_id">559809427977-cfooeoc78to0vh20q3u7bjruddmdl4dk.apps.googleusercontent.com</string>
 </resources>

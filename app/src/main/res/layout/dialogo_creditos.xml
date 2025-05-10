@@ -39,7 +39,7 @@
             android:id="@+id/correo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="fausto@ariasdev.com"
+            android:text="fausto@ariasdev.net.pe"
             android:textAlignment="center"
             android:textSize="16dp"
             android:linksClickable="true"

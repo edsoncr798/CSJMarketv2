@@ -16,6 +16,7 @@ import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
@@ -54,8 +55,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private AlertDialog alertDialog;
     private String idPersona;
     private ActivityMapsBinding binding;
-    double latitude;
-    double longitude;
+    double latitude = 0.0;
+    double longitude = 0.0;
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;
     private LocationCallback locationCallback;
@@ -79,6 +80,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         idPersona = getIntent().getStringExtra("idPersona");
 
+        /*
         mostrarLoader();
         verificarPermisos();
 
@@ -116,6 +118,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             verificarPermisos();
         }
 
+        */
         binding.mapsBtnGuardar.setOnClickListener(view -> {
             direccionNueva.setIdPersona(Integer.parseInt(idPersona));
             direccionNueva.setDescripcion(binding.mapsTxtDireccion.getText().toString());
@@ -272,7 +275,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 onBackPressed();
             }, error -> {
                 alertDialog.dismiss();
-                mostrarAlerta("Error al guardar la nueva dirección.\nDetalle: " + error.toString());
+                NetworkResponse networkResponse = error.networkResponse;
+                if (networkResponse!= null){
+                    String errorMessage = new String(networkResponse.data);
+                    mostrarAlerta(errorMessage);
+                }
+                else{
+                    mostrarAlerta(error.toString());
+                }
             }){
                 @Override
                 public Map<String, String> getHeaders() {

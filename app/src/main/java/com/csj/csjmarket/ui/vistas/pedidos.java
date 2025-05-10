@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
@@ -19,6 +20,7 @@ import com.csj.csjmarket.databinding.FragmentInicioBinding;
 import com.csj.csjmarket.databinding.FragmentPedidosBinding;
 import com.csj.csjmarket.modelos.MisPedidos;
 import com.csj.csjmarket.modelos.Producto;
+import com.csj.csjmarket.modelos.ValidarCorreo;
 import com.csj.csjmarket.ui.adaptadores.ProductoAdapter;
 import com.csj.csjmarket.ui.adaptadores.itemMisPedidosAdapter;
 import com.google.gson.Gson;
@@ -34,7 +36,7 @@ public class pedidos extends Fragment {
     private Gson gson = new Gson();
     private FragmentPedidosBinding binding;
     private View view;
-    private Bundle bundle;
+    private ValidarCorreo validarCorreo;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -47,7 +49,8 @@ public class pedidos extends Fragment {
         binding = FragmentPedidosBinding.inflate(inflater, container, false);
         view = binding.getRoot();
         binding.rvListaMisPedidos.setLayoutManager(new LinearLayoutManager(view.getContext()));
-        bundle = getArguments();
+
+        validarCorreo = (ValidarCorreo) getActivity().getIntent().getSerializableExtra("validarCorreo");
 
         recargar(view.getContext());
 
@@ -56,7 +59,7 @@ public class pedidos extends Fragment {
 
     private void recargar(Context context) {
         mostrarLoader();
-        String url = getString(R.string.connection) + "/mispedido?idPersona=" + bundle.getString("id");
+        String url = getString(R.string.connection) + "/mispedido?idPersona=" + validarCorreo.getId();
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null, response -> {
             Type miPedidoListType = new TypeToken<List<MisPedidos>>() {
             }.getType();
@@ -68,7 +71,14 @@ public class pedidos extends Fragment {
             alertDialog.dismiss();
         }, error -> {
             alertDialog.dismiss();
-            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente. Si el problema persiste póngase en contacto con el desarrollador.");
+            NetworkResponse networkResponse = error.networkResponse;
+            if (networkResponse!= null){
+                String errorMessage = new String(networkResponse.data);
+                mostrarAlerta(errorMessage);
+            }
+            else{
+                mostrarAlerta(error.toString());
+            }
         });
         Volley.newRequestQueue(context).add(jsonArrayRequest);
     }

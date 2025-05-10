@@ -11,7 +11,7 @@
         android:orientation="vertical"
         android:layout_marginTop="50dp">
 
-        <TextView
+        <!--<TextView
             android:id="@+id/perfil_txtInicial"
             android:layout_width="60dp"
             android:layout_height="60dp"
@@ -22,7 +22,13 @@
             android:textColor="@color/white"
             android:layout_marginTop="15dp"
             android:background="@drawable/estilo_caja_redonda"/>
+        -->
 
+        <ImageView
+            android:id="@+id/perfil_imagen"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            tools:srcCompat="@tools:sample/avatars"/>
         <TextView
             android:id="@+id/perfil_txtNombre"
             android:layout_width="match_parent"

@@ -20,12 +20,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Pago en línea"
-            android:checked="true"/>
+            android:enabled="false"
+            />
         <RadioButton
             android:id="@+id/mp_rbContraEntrega"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Pago contra entrega"/>
+            android:text="Pago contra entrega"
+            android:checked="true"/>
     </RadioGroup>
 
     <LinearLayout

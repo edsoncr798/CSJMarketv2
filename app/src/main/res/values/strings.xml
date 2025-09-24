@@ -10,7 +10,7 @@
 
     <string name="agregar">Agregar</string>
 
-    <string name="connection">https://csjmarket.comsanjuan.com:4443</string>
+    <string name="connection">https://aplicaciones.comsanjuan.com/csjmarket</string>
     <string name="txtCorreo">Correo electrónico</string>
     <string name="txtNumeroDocumento">Número de documento</string>
     <string name="txtNombre">Nombre o Razón social</string>
@@ -35,5 +35,5 @@
     <string name="title_activity_maps">MapsActivity</string>
     <string name="libroReclamaciones">Libro de reclamaciones</string>
 
-    <string name="default_web_client_id">559809427977-cfooeoc78to0vh20q3u7bjruddmdl4dk.apps.googleusercontent.com</string>
+    <string name="default_web_client_id">559809427977-jc4tr6nejgoaee12ssmr02rqtdsmldn1.apps.googleusercontent.com</string>
 </resources>

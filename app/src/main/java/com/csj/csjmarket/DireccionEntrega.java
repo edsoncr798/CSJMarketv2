@@ -20,9 +20,11 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NetworkResponse;
 import com.android.volley.ParseError;
 import com.android.volley.Request;
+import com.android.volley.RetryPolicy;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -160,6 +162,11 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
     }
 
     private void mostrarRegistro(){
+        Calendar calendar = Calendar.getInstance();
+        // Obtenemos día y hora actual
+        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK); // 1 = Domingo, 2 = Lunes, ..., 7 = Sábado
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);      // 0 - 23
+
         FirebaseUser user = mAuth.getCurrentUser();
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.dialogo_registro, null);
@@ -172,6 +179,7 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
         TextView numOpe = view.findViewById(R.id.dr_NumPedido);
         TextView tarjeta = view.findViewById(R.id.dr_tarjeta);
         TextView importe = view.findViewById(R.id.dr_importe);
+        TextView txtMensajeDelivery = view.findViewById(R.id.dr_txtMensajeDelivery);
 
         txtNumPedido.setText(respuestaPedido.getNumCp());
 
@@ -183,6 +191,7 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
         } catch (ParseException e) {
             e.printStackTrace();
         }
+
         String formattedDate = outputDateFormat.format(date);
         txtFechaHora.setText(formattedDate);
         if (fromJsonSuccess != null){
@@ -201,6 +210,29 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
 
         txtMensaje.setText("Hemos enviado un mensaje de correo electrónico a " + user.getEmail() + " con el detalle de su pedido. Por favor, compruebe su bandeja de entrada.");
 
+        if (dayOfWeek == Calendar.SUNDAY) {
+            txtMensajeDelivery.setText("Ahora no estamos atendiendo... Su pedido se enviará el dia de mañana a partir de las 09:00 a.m");
+        }
+        else if (dayOfWeek >= Calendar.MONDAY && dayOfWeek <= Calendar.FRIDAY) {
+            if (hour >= 17) {
+                txtMensajeDelivery.setText("Ahora no estamos atendiendo... Su pedido se enviará el dia de mañana a partir de las 09:00 a.m");
+            }
+            else{
+                txtMensajeDelivery.setVisibility(View.GONE);
+            }
+        }
+        else if (dayOfWeek == Calendar.SATURDAY) {
+            if (hour >= 13) {
+                txtMensajeDelivery.setText("Ahora no estamos atendiendo... Su pedido se enviará el dia lunes a partir de las 09:00 a.m");
+            }
+            else{
+                txtMensajeDelivery.setVisibility(View.GONE);
+            }
+        }
+        else{
+            txtMensajeDelivery.setVisibility(View.GONE);
+        }
+        
         builder.setView(view).setPositiveButton("Aceptar", (dialogInterface, i) -> {finish();})
                 .setCancelable(false);
         alertDialog = builder.create();
@@ -324,6 +356,7 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
         Gson gson = new Gson();
         JSONObject jsonBody = null;
         try {
+            itemsPedido.clear();
             cabeceraPedido.setIdPersona(Integer.parseInt(getIntent().getStringExtra("idPersona")));
             cabeceraPedido.setTotalVenta(montoTotal);
             cabeceraPedido.setTotalPeso(getIntent().getDoubleExtra("totalPeso", 0.0));
@@ -346,10 +379,10 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
             jsonBody = new JSONObject(gson.toJson(pedidoNuevo));
 
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, url, jsonBody, response -> {
-                Type productListType = new TypeToken<RespuestaPedido>() {
-                }.getType();
+//                Type productListType = new TypeToken<RespuestaPedido>() {
+//                }.getType();
 
-                this.respuestaPedido = gson.fromJson(response.toString(), productListType);
+                this.respuestaPedido = gson.fromJson(response.toString(), RespuestaPedido.class);
                 enviarCorreo(this.respuestaPedido.getIdCp());
                 alertDialog.dismiss();
                 sharedPreferences.edit().clear().commit();
@@ -366,6 +399,12 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
                     mostrarAlerta(error.toString());
                 }
             }){
+
+                @Override
+                public Request<?> setRetryPolicy(RetryPolicy retryPolicy) {
+                    return super.setRetryPolicy(new DefaultRetryPolicy(20000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+                }
+
                 @Override
                 public Map<String, String> getHeaders() {
                     Map<String, String> headers = new HashMap<>();
@@ -374,101 +413,7 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
                 }
             };
 
-            Volley.newRequestQueue(getApplicationContext()).add(jsonObjectRequest);
-        } catch (Exception e) {
-            alertDialog.dismiss();
-            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\nDetalle: " + e.getMessage());
-        }
-    }
-
-    private void crearPedido() {
-        String url = getString(R.string.connection) + "/api/pedido";
-        Gson gson = new Gson();
-        JSONObject jsonBody = null;
-        try {
-            cabeceraPedido.setIdPersona(Integer.parseInt(getIntent().getStringExtra("idPersona")));
-            cabeceraPedido.setTotalVenta(montoTotal);
-            cabeceraPedido.setTotalPeso(getIntent().getDoubleExtra("totalPeso", 0.0));
-            jsonBody = new JSONObject(gson.toJson(cabeceraPedido));
-            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, url, jsonBody, response -> {
-                Type productListType = new TypeToken<RespuestaPedido>() {
-                }.getType();
-                respuestaPedido = gson.fromJson(response.toString(), productListType);
-                insertarItemsPedido();
-            }, error -> {
-                alertDialog.dismiss();
-                NetworkResponse networkResponse = error.networkResponse;
-                if (networkResponse!= null){
-                    String errorMessage = new String(networkResponse.data);
-                    mostrarAlerta(errorMessage);
-                }
-                else{
-                    mostrarAlerta(error.toString());
-                }
-            }){
-                @Override
-                public Map<String, String> getHeaders() {
-                    Map<String, String> headers = new HashMap<>();
-                    headers.put("Content-Type", "application/json");
-                    return headers;
-                }
-            };
-
-            Volley.newRequestQueue(getApplicationContext()).add(jsonObjectRequest);
-        } catch (Exception e) {
-            alertDialog.dismiss();
-            mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\nDetalle: " + e.getMessage());
-        }
-    }
-
-    private void insertarItemsPedido(){
-        String url = getString(R.string.connection) + "/api/pedido/itemPedido";
-        Gson gson = new Gson();
-        JSONArray jsonBody = null;
-        try {
-            cargarCarrito();
-            for (MiCarrito item:carrito) {
-                ItemPedido itemPedido = new ItemPedido();
-                itemPedido.setIdCp(respuestaPedido.getIdCp());
-                itemPedido.setIdCpInventario(respuestaPedido.getIdCpInventario());
-                itemPedido.setIdProducto(item.getIdProducto());
-                itemPedido.setIdUnidad(item.getIdUnidad());
-                itemPedido.setPeso(item.getPesoTotal());
-                itemPedido.setDescripcion(item.getNombre());
-                itemPedido.setCantidad(item.getCantidad());
-                itemPedido.setPrecio(item.getPrecio());
-                itemPedido.setTotal(item.getTotal());
-                itemsPedido.add(itemPedido);
-            }
-            jsonBody = new JSONArray(gson.toJson(itemsPedido));
-            JsonArrayRequest jsonObjectRequest = new JsonArrayRequest(Request.Method.POST, url, jsonBody, response -> {
-                Type rpPedido = new TypeToken<RespuestaPedido>() {
-                }.getType();
-                respuestaPedido = gson.fromJson(response.toString(), rpPedido);
-                enviarCorreo(respuestaPedido.getIdCp());
-                alertDialog.dismiss();
-                sharedPreferences.edit().clear().commit();
-                mostrarRegistro();
-            }, error -> {
-                alertDialog.dismiss();
-                NetworkResponse networkResponse = error.networkResponse;
-                if (networkResponse!= null){
-                    String errorMessage = new String(networkResponse.data);
-                    mostrarAlerta(errorMessage);
-                }
-                else{
-                    mostrarAlerta(error.toString());
-                }
-            }){
-                @Override
-                public Map<String, String> getHeaders() {
-                    Map<String, String> headers = new HashMap<>();
-                    headers.put("Content-Type", "application/json");
-                    return headers;
-                }
-            };
-
-            Volley.newRequestQueue(getApplicationContext()).add(jsonObjectRequest);
+            Volley.newRequestQueue(this).add(jsonObjectRequest);
         } catch (Exception e) {
             alertDialog.dismiss();
             mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\nDetalle: " + e.getMessage());
@@ -619,8 +564,6 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
                 VisaNetViewAuthorizationCustom custom = new VisaNetViewAuthorizationCustom();
                 custom.setLogoImage(R.drawable.logo_csj);
 
-                custom.setButtonColorMerchant(lib.visanet.com.pe.visanetlib.R.color.visanet_black);
-
                 try {
                     VisaNet.authorization(DireccionEntrega.this, data, custom);
                 } catch (Exception e) {
@@ -674,12 +617,12 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
         Gson gson = new Gson();
         JSONObject jsonBody = null;
         try {
-            Type keySuccessType = new TypeToken<keySuccess>() {
-            }.getType();
-            fromJsonSuccess = gson.fromJson(JSONString, keySuccessType);
+//            Type keySuccessType = new TypeToken<keySuccess>() {
+//            }.getType();
+            fromJsonSuccess = gson.fromJson(JSONString, keySuccess.class);
             jsonBody = new JSONObject(gson.toJson(fromJsonSuccess));
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, url, jsonBody, response -> {
-                fromJsonSuccess = gson.fromJson(response.toString(), keySuccessType);
+                fromJsonSuccess = gson.fromJson(response.toString(), keySuccess.class);
                 //crearPedido(); METODO ANTIGUO PARA GUARDAR PEDIDO
                 enviarPedido();
             }, error -> {
@@ -724,9 +667,9 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
                     JSONString = JSONString != null ? JSONString : "";
                     if (JSONString != ""){
                         Gson gson = new Gson();
-                        Type errorType = new TypeToken<error>() {
-                        }.getType();
-                        fromJsonError = gson.fromJson(JSONString, errorType);
+//                        Type errorType = new TypeToken<error>() {
+//                        }.getType();
+                        fromJsonError = gson.fromJson(JSONString, error.class);
 
                         alertDialog.dismiss();
 
@@ -747,7 +690,7 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
             StringRequest jsonObjectRequest = new StringRequest(Request.Method.GET, url,response -> {
                 Log.d(TAG, "enviarCorreo: Correo OK");
             }, error -> {
-                alertDialog.dismiss();
+                /*alertDialog.dismiss();
                 NetworkResponse networkResponse = error.networkResponse;
                 if (networkResponse!= null){
                     String errorMessage = new String(networkResponse.data);
@@ -755,8 +698,14 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
                 }
                 else{
                     mostrarAlerta(error.toString());
+                }*/
+                Log.d(TAG, "enviarCorreo: Correo ERROR");
+            }){
+                @Override
+                public Request<?> setRetryPolicy(RetryPolicy retryPolicy) {
+                    return super.setRetryPolicy(new DefaultRetryPolicy(5000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
                 }
-            });
+            };
 
             Volley.newRequestQueue(getApplicationContext()).add(jsonObjectRequest);
         } catch (Exception e) {

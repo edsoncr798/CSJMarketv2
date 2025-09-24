@@ -259,9 +259,9 @@ public class RegistrarCorreo extends AppCompatActivity {
         String url = getString(R.string.connection) + "/api/validarCorreos?correo=" + correo;
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, response -> {
             Gson gson = new Gson();
-            Type validartListType = new TypeToken<ValidarCorreo>() {
-            }.getType();
-            validarCorreo = gson.fromJson(response.toString(), validartListType);
+//            Type validartListType = new TypeToken<ValidarCorreo>() {
+//            }.getType();
+            validarCorreo = gson.fromJson(response.toString(), ValidarCorreo.class);
             if (alertDialog != null){
                 alertDialog.dismiss();
             }

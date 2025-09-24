@@ -1,0 +1,92 @@
+{
+  "project_info": {
+    "project_number": "559809427977",
+    "project_id": "marketcsj",
+    "storage_bucket": "marketcsj.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:559809427977:android:ee7daaf6d695c18f8496d8",
+        "android_client_info": {
+          "package_name": "com.csj.csjmarket"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "559809427977-79t00lf4nhe57so7b40vq8b6sj9a800g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.csj.csjmarket",
+            "certificate_hash": "1c4f9eb185939ee6963720330ec771e3d6033bd9"
+          }
+        },
+        {
+          "client_id": "559809427977-cfooeoc78to0vh20q3u7bjruddmdl4dk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.csj.csjmarket",
+            "certificate_hash": "6083b167a5c73b175addfa394c158f5ac184b8b5"
+          }
+        },
+        {
+          "client_id": "559809427977-rlcvsmi6jtlsfegirqaj2grs3i7s2l8v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.csj.csjmarket",
+            "certificate_hash": "2b6fff706cef12248c908a5ab0ab5414485cd7e8"
+          }
+        },
+        {
+          "client_id": "559809427977-gmde5ctjejk7ara8mhdc17pfr69ns45p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC34uQBYf1fvVArJJB9yOKKtICk05p7cf8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "559809427977-gmde5ctjejk7ara8mhdc17pfr69ns45p.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:559809427977:android:7e38352bf8431fa58496d8",
+        "android_client_info": {
+          "package_name": "comsj.recibosapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "559809427977-gmde5ctjejk7ara8mhdc17pfr69ns45p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC34uQBYf1fvVArJJB9yOKKtICk05p7cf8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "559809427977-gmde5ctjejk7ara8mhdc17pfr69ns45p.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

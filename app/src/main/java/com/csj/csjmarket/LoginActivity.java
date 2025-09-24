@@ -1,26 +1,33 @@
 package com.csj.csjmarket;
 
+import static com.behaviosec.pppppdd.TAG;
+import static com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL;
+
+import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Patterns;
+import android.os.CancellationSignal;
+import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
-import android.Manifest;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.credentials.Credential;
+import androidx.credentials.CredentialManager;
+import androidx.credentials.CredentialManagerCallback;
+import androidx.credentials.CustomCredential;
+import androidx.credentials.GetCredentialRequest;
+import androidx.credentials.GetCredentialResponse;
+import androidx.credentials.exceptions.GetCredentialException;
 
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
@@ -28,154 +35,114 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.csj.csjmarket.databinding.ActivityLoginBinding;
 import com.csj.csjmarket.modelos.ValidarCorreo;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.FirebaseApp;
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
+import com.google.android.play.core.appupdate.AppUpdateInfo;
+import com.google.android.play.core.appupdate.AppUpdateManager;
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
+import com.google.android.play.core.appupdate.AppUpdateOptions;
+import com.google.android.play.core.install.model.AppUpdateType;
+import com.google.android.play.core.install.model.UpdateAvailability;
 import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import java.lang.reflect.Type;
+import java.util.Objects;
+import java.util.concurrent.Executors;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private ActivityLoginBinding binding;
-    private static final int RC_SIGN_IN = 9001;
     private FirebaseAuth mAuth;
-    private GoogleSignInClient mGoogleSignInClient;
     private AlertDialog alertDialog;
     private ValidarCorreo validarCorreo;
+    private CredentialManager credentialManager;
+
+    private AppUpdateManager appUpdateManager;
+    private ActivityResultLauncher<IntentSenderRequest> activityResultLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        binding = ActivityLoginBinding.inflate(getLayoutInflater());
+        ActivityLoginBinding binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         SharedPreferences sharedPreferences = this.getSharedPreferences("carritoInfo", MODE_PRIVATE);
-        sharedPreferences.edit().clear().commit();
+        sharedPreferences.edit().clear().apply();
 
         mAuth = FirebaseAuth.getInstance();
+        credentialManager = CredentialManager.create(getBaseContext());
 
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build();
+        binding.loginBtnGoogle.setOnClickListener(view -> signIn());
 
-        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+        appUpdateManager = AppUpdateManagerFactory.create(this);
 
-        binding.loginBtnGoogle.setOnClickListener(view -> {
-            mostrarLoader();
-            signIn();
-        });
+        activityResultLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartIntentSenderForResult(),
+                result -> {
+                    if (result.getResultCode() != RESULT_OK) {
+                        Log.e("ERROR ACTUALIZACION: ", "La actualización FALLO: " + result.getResultCode());
+                        // El usuario canceló o falló la actualización
+                        // Para "IMMEDIATE" normalmente bloqueas el uso o vuelves a pedir la actualización
+                        showForceUpdateDialog();
+                    }
+                }
+        );
 
+        checkForImmediateUpdate();
         solicitarPermisoNotificaciones();
+    }
 
-        /*binding.txtCrearCuenta.setOnClickListener(view -> {
-            Intent intent = new Intent(LoginActivity.this, RegistrarCorreo.class);
-            startActivity(intent);
-            finish();
-        });
+    private void checkForImmediateUpdate() {
+        Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
 
-        binding.loginBtnMail.setOnClickListener(view -> {
-            if (validarFormatoCorreo() && validarContraseña()){
-                mostrarLoader();
-                mAuth.signInWithEmailAndPassword(binding.loginTxtCorreo.getText().toString().trim(),
-                                binding.loginTxtPass.getText().toString().trim())
-                        .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                try {
-                                    if (task.isSuccessful()) {
-                                        FirebaseUser user = mAuth.getCurrentUser();
-                                        updateUI(user);
-                                    } else {
-                                        alertDialog.dismiss();
-                                        String errorCode = ((FirebaseAuthException) task.getException()).getErrorCode();
-                                        switch (errorCode) {
-                                            case "ERROR_INVALID_CUSTOM_TOKEN":
-                                                mostrarAlerta("El formato del token personalizado es incorrecto. Por favor revisa la documentación.");
-                                                break;
-                                            case "ERROR_CUSTOM_TOKEN_MISMATCH":
-                                                mostrarAlerta("El token personalizado corresponde a una audiencia diferente.");
-                                                break;
-                                            case "ERROR_INVALID_CREDENTIAL":
-                                                mostrarAlerta("La credencial de autenticación proporcionada tiene un formato incorrecto o ha caducado.");
-                                                break;
-                                            case "ERROR_INVALID_EMAIL":
-                                                mostrarAlerta("La dirección de correo electrónico está mal formateada.");
-                                                break;
-                                            case "ERROR_WRONG_PASSWORD":
-                                                mostrarAlerta("La contraseña no es válida o el usuario no tiene contraseña.");
-                                                break;
-                                            case "ERROR_USER_MISMATCH":
-                                                mostrarAlerta("Las credenciales proporcionadas no corresponden al usuario que inició sesión anteriormente.");
-                                                break;
-                                            case "ERROR_REQUIRES_RECENT_LOGIN":
-                                                mostrarAlerta("Esta operación es confidencial y requiere autenticación reciente. Inicie sesión nuevamente antes de volver a intentar esta solicitud.");
-                                                break;
-                                            case "ERROR_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL":
-                                                mostrarAlerta("Ya existe una cuenta con la misma dirección de correo electrónico pero con credenciales de inicio de sesión diferentes. Inicie sesión utilizando un proveedor asociado con esta dirección de correo electrónico.");
-                                                break;
-                                            case "ERROR_EMAIL_ALREADY_IN_USE":
-                                                mostrarAlerta("La dirección de correo electrónico ya está en uso en otra cuenta.");
-                                                break;
-                                            case "ERROR_CREDENTIAL_ALREADY_IN_USE":
-                                                mostrarAlerta("Esta credencial ya está asociada con una cuenta de usuario diferente.");
-                                                break;
-                                            case "ERROR_USER_DISABLED":
-                                                mostrarAlerta("La cuenta de usuario ha sido deshabilitada por un administrador.");
-                                                break;
-                                            case "ERROR_USER_TOKEN_EXPIRED":
-                                                mostrarAlerta("La credencial del usuario ya no es válida. El usuario debe iniciar sesión nuevamente.");
-                                                break;
-                                            case "ERROR_USER_NOT_FOUND":
-                                                mostrarAlerta("No existe ningún registro de usuario correspondiente a este identificador. Es posible que el usuario haya sido eliminado.");
-                                                break;
-                                            case "ERROR_INVALID_USER_TOKEN":
-                                                mostrarAlerta("La credencial del usuario ya no es válida. El usuario debe iniciar sesión nuevamente.");
-                                                break;
-                                            case "ERROR_OPERATION_NOT_ALLOWED":
-                                                mostrarAlerta("Esta operación no está permitida. Debes habilitar este servicio en la consola.");
-                                                break;
-                                            case "ERROR_WEAK_PASSWORD":
-                                                mostrarAlerta("La contraseña proporcionada no es válida.");
-                                                break;
-                                            case "ERROR_MISSING_EMAIL":
-                                                mostrarAlerta("Se debe proporcionar una dirección de correo electrónico.");
-                                                break;
-                                        }
-                                    }
-                                }catch (Exception ex){
-                                    mostrarAlerta("Algo salio mal, por favor intenta nuevamente ahora o vuelve más tarde.");
-                                }
-
-                            }
-                        });
+        appUpdateInfoTask.addOnSuccessListener(appUpdateInfo -> {
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+                    && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
+                try {
+                    appUpdateManager.startUpdateFlowForResult(
+                            appUpdateInfo,
+                            activityResultLauncher,
+                            AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE)
+                                    .build()
+                    );
+                } catch (Exception e) {
+                    Log.e("ERROR", Objects.requireNonNull(e.getMessage()));
+                }
             }
         });
+    }
 
-        binding.txtRecuperarCuenta.setOnClickListener(view -> {
-            Intent intent = new Intent(LoginActivity.this, RecuperarCorreo.class);
-            startActivity(intent);
-            finish();
-        });
+    private void showForceUpdateDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Actualización obligatoria")
+                .setMessage("Debes actualizar la aplicación para continuar usando el servicio.")
+                .setCancelable(false) //
+                .setPositiveButton("Actualizar", (dialog, which) -> checkForImmediateUpdate())
+                .setNegativeButton("Salir", (dialog, which) -> finishAffinity())
+                .show();
+    }
 
-        binding.loginTxtCorreo.addTextChangedListener(new validacionTextWatcher(binding.loginTxtCorreo));
-        binding.loginTxtPass.addTextChangedListener(new validacionTextWatcher(binding.loginTxtPass));
-*/
+    @Override
+    protected void onResume() {
+        super.onResume();
+        appUpdateManager
+                .getAppUpdateInfo()
+                .addOnSuccessListener(
+                        appUpdateInfo -> {
+                            if (appUpdateInfo.updateAvailability()
+                                    == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                                // If an in-app update is already running, resume the update.
+                                appUpdateManager.startUpdateFlowForResult(
+                                        appUpdateInfo,
+                                        activityResultLauncher,
+                                        AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build());
+                            }
+                        });
     }
 
     private void solicitarPermisoNotificaciones(){
@@ -185,8 +152,6 @@ public class LoginActivity extends AppCompatActivity {
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.POST_NOTIFICATIONS},
                         1);
-            } else {
-                // Permiso ya otorgado, puedes mostrar notificaciones
             }
         }
     }
@@ -198,68 +163,13 @@ public class LoginActivity extends AppCompatActivity {
         if (requestCode == 1) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permiso concedido
+                Log.e("PERMISO NOTIFICACIONES: ", "CONCEDIDO");
             } else {
                 // Permiso denegado
                 solicitarPermisoNotificaciones();
             }
         }
     }
-
-
-    public class validacionTextWatcher implements TextWatcher {
-        private View view;
-
-        private validacionTextWatcher(View view) {
-            this.view = view;
-        }
-
-        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-        }
-
-        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-        }
-
-        public void afterTextChanged(Editable editable) {
-            switch (view.getId()) {
-                /*case R.id.login_txtCorreo:
-                    validarFormatoCorreo();
-                    break;
-                case R.id.login_txtPass:
-                    validarContraseña();
-                    break;*/
-            }
-        }
-    }
-
-    private void requestFocus(View view) {
-        if (view.requestFocus()) {
-            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-        }
-    }
-
-    /*private boolean validarFormatoCorreo() {
-        String direccionCorreo = binding.loginTxtCorreo.getText().toString().trim();
-        if (direccionCorreo.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(direccionCorreo).matches()) {
-            binding.loginTilCorreo.setError("Por favor, ingrese un correo electrónico válido.");
-            requestFocus(binding.loginTilCorreo);
-            return false;
-        }else {
-            binding.loginTilCorreo.setErrorEnabled(false);
-        }
-        return true;
-    }
-
-    private boolean validarContraseña() {
-        String contraseñaCorreo = binding.loginTxtPass.getText().toString().trim();
-        if (contraseñaCorreo.isEmpty()) {
-            binding.loginTilPass.setError("Por favor, ingrese su contraseña.");
-            requestFocus(binding.loginTilPass);
-            return false;
-        }else {
-            binding.loginTilPass.setErrorEnabled(false);
-        }
-        return true;
-    }*/
 
     @Override
     public void onStart() {
@@ -273,47 +183,73 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void signIn() {
-        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        googleSignInLauncher.launch(new Intent(signInIntent));
+        // [START create_credential_manager_request]
+        // Instantiate a Google sign-in request
+        GetGoogleIdOption googleIdOption = new GetGoogleIdOption.Builder()
+                .setFilterByAuthorizedAccounts(false)
+                .setServerClientId(getString(R.string.default_web_client_id))
+                .build();
+
+        // Create the Credential Manager request
+        GetCredentialRequest request = new GetCredentialRequest.Builder()
+                .addCredentialOption(googleIdOption)
+                .build();
+        // [END create_credential_manager_request]
+
+        // Launch Credential Manager UI
+        credentialManager.getCredentialAsync(
+                this,
+                request,
+                new CancellationSignal(),
+                Executors.newSingleThreadExecutor(),
+                new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
+                    @Override
+                    public void onResult(GetCredentialResponse result) {
+                        handleSignIn(result.getCredential());
+                    }
+
+                    @Override
+                    public void onError(@NonNull GetCredentialException e) {
+                        Log.e(TAG, "Couldn't retrieve user's credentials: " + e.getLocalizedMessage());
+                    }
+                }
+        );
     }
 
-    ActivityResultLauncher<Intent> googleSignInLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
-        @Override
-        public void onActivityResult(ActivityResult result) {
-            if (result.getResultCode() == RESULT_OK){
-                Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
-                try {
-                    // Google Sign In was successful, authenticate with Firebase
-                    GoogleSignInAccount account = task.getResult(ApiException.class);
-                    firebaseAuthWithGoogle(account.getIdToken());
-                } catch (ApiException e) {
-                    // Google Sign In failed, update UI appropriately
-                    String a = e.getMessage();
-                    a.length();
-                }
+    // [START handle_sign_in]
+    private void handleSignIn(Credential credential) {
+        // Verificar si es un CustomCredential
+        if (credential instanceof CustomCredential) {
+            CustomCredential customCredential = (CustomCredential) credential;
+
+            if (credential.getType().equals(TYPE_GOOGLE_ID_TOKEN_CREDENTIAL)) {
+                // Crear Google ID Token
+                Bundle credentialData = customCredential.getData();
+                GoogleIdTokenCredential googleIdTokenCredential =
+                        GoogleIdTokenCredential.createFrom(credentialData);
+
+                // Iniciar sesión en Firebase con el token
+                firebaseAuthWithGoogle(googleIdTokenCredential.getIdToken());
+            } else {
+                mostrarAlerta("Algo salió mal, inténtelo nuevamente.");
             }
-            else
-            {
-                alertDialog.dismiss();
-                mostrarAlerta("Ocurrio un error al validar los datos de google.");
-            }
+        } else {
+            mostrarAlerta("Ocurrio un error al validar los datos de Google.");
         }
-    });
+    }
+    // [END handle_sign_in]
 
     private void firebaseAuthWithGoogle(String idToken) {
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
         mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            updateUI(user);
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            updateUI(null);
-                        }
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        // Sign in success, update UI with the signed-in user's information
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        updateUI(user);
+                    } else {
+                        // If sign in fails, display a message to the user.
+                        updateUI(null);
                     }
                 });
     }
@@ -322,23 +258,21 @@ public class LoginActivity extends AppCompatActivity {
         if (user != null) {
             if (user.isEmailVerified()) {
                 acceder(user.getEmail(),
-                        user.getDisplayName() == null || user.getDisplayName() == "" ? user.getEmail() : user.getDisplayName(),
-                        user.getPhotoUrl().toString());
+                        user.getDisplayName() == null || user.getDisplayName().isEmpty() ? user.getEmail() : user.getDisplayName(),
+                        Objects.requireNonNull(user.getPhotoUrl()).toString());
             }
             else {
                 if (alertDialog != null){
                     alertDialog.dismiss();
                 }
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setIcon(R.drawable.ic_baseline_info_24);
-                builder.setTitle("Aún no haz verificado tu correo");
-                builder.setMessage("Hemos enviado un mensaje de correo electrónico a " + user.getEmail() + " para asegurarnos de que eres el propietario. Por favor, comprueba su bandeja de entrada.");
-                builder.setPositiveButton("Aceptar", (dialogInterface, i) -> {
-                    mAuth.signOut();
-                });
-                builder.setCancelable(false);
-                alertDialog = builder.create();
-                alertDialog.show();
+
+                new AlertDialog.Builder(this)
+                .setIcon(R.drawable.ic_baseline_info_24)
+                .setTitle("Aún no haz verificado tu correo")
+                .setMessage("Hemos enviado un mensaje de correo electrónico a " + user.getEmail() + " para asegurarnos de que eres el propietario. Por favor, comprueba su bandeja de entrada.")
+                .setPositiveButton("Aceptar", (dialogInterface, i) -> mAuth.signOut())
+                .setCancelable(false)
+                .show();
             }
         }
     }
@@ -387,16 +321,21 @@ public class LoginActivity extends AppCompatActivity {
         String url = getString(R.string.connection) + "/api/validarCorreos/nuevo?correo=" + correo;
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, response -> {
             Gson gson = new Gson();
-            Type validartListType = new TypeToken<ValidarCorreo>() {
-            }.getType();
-            validarCorreo = gson.fromJson(response.toString(), validartListType);
+//            Type validartListType = new TypeToken<ValidarCorreo>() {
+//            }.getType();
+            validarCorreo = gson.fromJson(response.toString(), ValidarCorreo.class);
             if (alertDialog != null){
                 alertDialog.dismiss();
             }
-            if (validarCorreo.getId() != 0) {
-                irMain(correo, nombre, validarCorreo, imagen);
+
+            if (validarCorreo != null) {  // validar que gson devolvió algo
+                if (validarCorreo.getId() != 0) {
+                    irMain(correo, nombre, validarCorreo, imagen);
+                } else {
+                    irEnlazar(correo, nombre);
+                }
             } else {
-                irEnlazar(correo, nombre);
+                mostrarAlerta("Respuesta inesperada del servidor");
             }
         }, error -> {
             if (alertDialog != null){

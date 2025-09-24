@@ -32,33 +32,29 @@ import java.net.URLEncoder;
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
-    private ActivityMainBinding binding;
 
     private FirebaseAuth mAuth;
-    private TextView txtInicial, txtNombre;
+    private TextView txtInicial;
     private ImageView imagen;
     public ValidarCorreo validarCorreo;
-    private String nombreUsuario, correoUsuario, rutaImagen;
-
-    private AlertDialog dialogo_creditos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        nombreUsuario = getIntent().getStringExtra("nombre");
-        correoUsuario = getIntent().getStringExtra("correo");
-        rutaImagen = getIntent().getStringExtra("imagen");
+        String nombreUsuario = getIntent().getStringExtra("nombre");
+        String correoUsuario = getIntent().getStringExtra("correo");
+        String rutaImagen = getIntent().getStringExtra("imagen");
         validarCorreo = (ValidarCorreo) getIntent().getSerializableExtra("validarCorreo");
 
         mAuth = FirebaseAuth.getInstance();
 
         //txtInicial = binding.navView.getHeaderView(0).findViewById(R.id.nav_txtInicial);
         imagen = binding.navView.getHeaderView(0).findViewById(R.id.nav_imagen);
-        txtNombre = binding.navView.getHeaderView(0).findViewById(R.id.nav_txtNombre);
+        TextView txtNombre = binding.navView.getHeaderView(0).findViewById(R.id.nav_txtNombre);
 
         //txtInicial.setText(nombreUsuario.substring(0, 1));
         Glide.with(this)
@@ -125,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
             View view = getLayoutInflater().inflate(R.layout.dialogo_creditos, null);
             TextView correo = view.findViewById(R.id.correo);
             correo.setOnClickListener(view1 -> {
-                String[] recipients = {"fausto@ariasdev.net.pe"}; // Agrega la dirección de correo del destinatario aquí
+                String[] recipients = {"faustoarias1692@gmil.com"}; // Agrega la dirección de correo del destinatario aquí
                 String subject = "Quiero un nuevo sistema"; // Asunto del correo
                 String body = "Quiero un nuevo sistema para mi empresa"; // Contenido del correo
 
@@ -139,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
             });
             builder.setView(view).setPositiveButton("Aceptar", null)
                     .setCancelable(true);
-            dialogo_creditos = builder.create();
+            AlertDialog dialogo_creditos = builder.create();
             dialogo_creditos.show();
             return true;
         }

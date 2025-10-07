@@ -26,4 +26,11 @@
     <style name="CustomRippleTheme">
         <item name="android:colorControlHighlight">@color/grey</item>
     </style>
+
+    <style name="Theme.CsjMarket.NoActionBar" parent="Theme.CsjMarket">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
 </resources>

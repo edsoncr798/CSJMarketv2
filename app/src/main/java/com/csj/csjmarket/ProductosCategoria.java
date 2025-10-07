@@ -21,20 +21,28 @@ import android.view.animation.AnimationUtils;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.csj.csjmarket.databinding.ActivityProductosCategoriaBinding;
 import com.csj.csjmarket.databinding.ActivityVerProductoBinding;
 import com.csj.csjmarket.modelos.MiCarrito;
 import com.csj.csjmarket.modelos.Producto;
+import com.csj.csjmarket.modelos.StockInfo;
 import com.csj.csjmarket.ui.adaptadores.ProductoAdapter;
 import com.csj.csjmarket.ui.vistas.inicio;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ProductosCategoria extends AppCompatActivity {
@@ -50,6 +58,7 @@ public class ProductosCategoria extends AppCompatActivity {
     private String rucProveedor;
     private String idProveedor;
     private int lastVisibleItemPosition;
+    private Map<Integer, StockInfo> stockMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,10 +133,11 @@ public class ProductosCategoria extends AppCompatActivity {
             Type productListType = new TypeToken<List<Producto>>() {
             }.getType();
             productos = gson.fromJson(response.toString(), productListType);
-            ProductoAdapter productoAdapter = new ProductoAdapter(productos);
+            ProductoAdapter productoAdapter = new ProductoAdapter(productos, stockMap);
             binding.provRvListaProducto.setAdapter(productoAdapter);
             productoAdapter.notifyDataSetChanged();
             alertDialog.dismiss();
+            cargarStock(context);
         }, error -> {
             alertDialog.dismiss();
             NetworkResponse networkResponse = error.networkResponse;
@@ -140,6 +150,41 @@ public class ProductosCategoria extends AppCompatActivity {
             }
         });
         Volley.newRequestQueue(context).add(jsonArrayRequest);
+    }
+
+    private void cargarStock(Context context) {
+        String url = "https://api.comsanjuan.com:8443/api/products/stock";
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, response -> {
+            try {
+                JSONArray data = response.getJSONArray("data");
+                Map<Integer, StockInfo> nuevoStock = new HashMap<>();
+                for (int i = 0; i < data.length(); i++) {
+                    JSONArray inner = data.getJSONArray(i);
+                    for (int j = 0; j < inner.length(); j++) {
+                        JSONObject obj = inner.getJSONObject(j);
+                        int id = obj.getInt("Id");
+                        int fisico = obj.getInt("StockFisico");
+                        int porEntregar = obj.getInt("StockPorEntregar");
+                        nuevoStock.put(id, new StockInfo(id, fisico, porEntregar));
+                    }
+                }
+                stockMap = nuevoStock;
+                // Guardar mapa de stock en SharedPreferences para uso en Carrito
+                android.content.SharedPreferences sp = context.getSharedPreferences("stockInfo", android.content.Context.MODE_PRIVATE);
+                sp.edit().putString("stockMap", new com.google.gson.Gson().toJson(stockMap)).apply();
+                
+                if (binding.provRvListaProducto.getAdapter() != null) {
+                    ProductoAdapter productoAdapter = new ProductoAdapter(productos, stockMap);
+                    binding.provRvListaProducto.setAdapter(productoAdapter);
+                    productoAdapter.notifyDataSetChanged();
+                }
+            } catch (JSONException e) {
+                // Ignorar parse por ahora
+            }
+        }, error -> {
+            // Silencioso
+        });
+        Volley.newRequestQueue(context).add(jsonObjectRequest);
     }
 
     public class validacionTextWatcher implements TextWatcher {
@@ -165,12 +210,14 @@ public class ProductosCategoria extends AppCompatActivity {
     }
 
     private void filtrarXNombre(){
+        String textoBusqueda = binding.provTxtBuscarProducto.getText().toString().toUpperCase();
         productosFiltrado = (ArrayList<Producto>) productos
                 .stream()
-                .filter(x -> x.getNombre().toUpperCase().contains(binding.provTxtBuscarProducto.getText().toString().toUpperCase()))
+                .filter(x -> x.getNombre().toUpperCase().contains(textoBusqueda)
+                        || (x.getCodigo() != null && x.getCodigo().toUpperCase().contains(textoBusqueda)))
                 .collect(Collectors.toList());
 
-        ProductoAdapter productoAdapter = new ProductoAdapter(productosFiltrado);
+        ProductoAdapter productoAdapter = new ProductoAdapter(productosFiltrado, stockMap);
         binding.provRvListaProducto.setAdapter(productoAdapter);
         productoAdapter.notifyDataSetChanged();
     }

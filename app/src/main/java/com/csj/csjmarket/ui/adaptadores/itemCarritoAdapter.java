@@ -15,6 +15,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -22,11 +23,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.csj.csjmarket.R;
 import com.csj.csjmarket.modelos.MiCarrito;
+import com.csj.csjmarket.modelos.StockInfo;
 import com.csj.csjmarket.ui.Ayudas;
 import com.google.gson.Gson;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Map;
 
 public class itemCarritoAdapter extends RecyclerView.Adapter<itemCarritoAdapter.ViewHolderCarrito> {
     private Context context;
@@ -36,12 +39,24 @@ public class itemCarritoAdapter extends RecyclerView.Adapter<itemCarritoAdapter.
     private Gson gson = new Gson();
     private SharedPreferences sharedPreferences;
 
+    private Map<Integer, StockInfo> stockMap; // mapa de stock por id
+
     private boolean isDeleteButtonVisible = false;
     private int deleteButtonPosition = -1;
 
     public itemCarritoAdapter(ArrayList<MiCarrito> carrito, Context context) {
         this.carrito = carrito;
         this.context = context;
+    }
+
+    public itemCarritoAdapter(ArrayList<MiCarrito> carrito, Context context, Map<Integer, StockInfo> stockMap) {
+        this.carrito = carrito;
+        this.context = context;
+        this.stockMap = stockMap;
+    }
+
+    public void setStockMap(Map<Integer, StockInfo> stockMap) {
+        this.stockMap = stockMap;
     }
 
     @NonNull
@@ -86,6 +101,15 @@ public class itemCarritoAdapter extends RecyclerView.Adapter<itemCarritoAdapter.
         });
         holder.btnAumentar.setOnClickListener(view -> {
             cantidad = carrito.get(holder.getAdapterPosition()).getCantidad();
+            int disponible = getDisponible(carrito.get(holder.getAdapterPosition()).getIdProducto());
+            if (disponible <= 0) {
+                Toast.makeText(context, "Producto sin stock", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (cantidad >= disponible) {
+                Toast.makeText(context, "Stock máximo: " + disponible, Toast.LENGTH_SHORT).show();
+                return;
+            }
             cantidad++;
             total = cantidad * carrito.get(holder.getAdapterPosition()).getPrecio();
             holder.txtCantidad.setText(cantidad.toString());
@@ -143,6 +167,15 @@ public class itemCarritoAdapter extends RecyclerView.Adapter<itemCarritoAdapter.
                 if (cantidad < 0) {
                     cantidad = 0;
                     holder.txtCantidad.setText(cantidad.toString());
+                }
+
+                int disponible = getDisponible(carrito.get(holder.getAdapterPosition()).getIdProducto());
+                if (cantidad > disponible) {
+                    cantidad = Math.max(disponible, 0);
+                    holder.txtCantidad.setText(cantidad.toString());
+                    if (disponible < Integer.MAX_VALUE) {
+                        Toast.makeText(context, "Stock máximo: " + disponible, Toast.LENGTH_SHORT).show();
+                    }
                 }
 
                 total = cantidad * carrito.get(holder.getAdapterPosition()).getPrecio();
@@ -207,5 +240,15 @@ public class itemCarritoAdapter extends RecyclerView.Adapter<itemCarritoAdapter.
         isDeleteButtonVisible = true;
         deleteButtonPosition = position;
         notifyDataSetChanged();
+    }
+
+    private int getDisponible(int idProducto) {
+        if (stockMap != null) {
+            StockInfo info = stockMap.get(idProducto);
+            if (info != null) {
+                return Math.max(info.getStockDisponible(), 0);
+            }
+        }
+        return Integer.MAX_VALUE; // sin dato de stock, no limitar
     }
 }

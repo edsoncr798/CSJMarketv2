@@ -33,6 +33,45 @@
 -dontwarn com.squareup.okhttp.Request
 -dontwarn com.squareup.okhttp.Response
 -dontwarn com.squareup.okhttp.ResponseBody
+
+# Keep Firebase classes
+-keep class com.google.firebase.** { *; }
+-keep class com.google.android.gms.** { *; }
+
+# Keep Google Play In-App Update
+-keep class com.google.android.play.** { *; }
+
+# Keep AndroidX Credentials and Google ID libraries
+-keep class androidx.credentials.** { *; }
+-keep class com.google.android.libraries.identity.googleid.** { *; }
+
+# Keep Glide (usually covered by consumer rules, but reinforce)
+-keep class com.bumptech.glide.** { *; }
+-keep class com.bumptech.glide.load.resource.bitmap.** { *; }
+-keep class com.bumptech.glide.load.resource.drawable.** { *; }
+
+# Keep Gson models (reflection-based)
+-keep class com.csj.csjmarket.modelos.** { *; }
+-keepattributes Signature
+-keepattributes *Annotation*
+
+# Keep retrofit/okhttp interfaces and annotations
+-keep class retrofit2.** { *; }
+-keep class okhttp3.** { *; }
+-dontwarn retrofit2.**
+-dontwarn okhttp3.**
+
+# Keep third-party UI libs that may use reflection
+-keep class org.imaginativeworld.whynotimagecarousel.** { *; }
+-keep class me.relex.circleindicator.** { *; }
+
+# Keep cryptography libs
+-keep class com.nimbusds.** { *; }
+-keep class org.bouncycastle.** { *; }
+
+# Keep Google Tink classes used by Nimbus JOSE
+-keep class com.google.crypto.tink.** { *; }
+-dontwarn com.google.crypto.tink.**
 -dontwarn com.cardinalcommerce.dependencies.internal.bouncycastle.openssl.jcajce.JcaPEMKeyConverter
 
 -keep class com.google.gson.** { *; }

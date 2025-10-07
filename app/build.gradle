@@ -5,14 +5,14 @@ plugins {
 }
 android {
     namespace 'com.csj.csjmarket'
-    compileSdkVersion 35
+    compileSdkVersion 36
 
     defaultConfig {
         applicationId "com.csj.csjmarket"
         minSdk 28
         targetSdk 35
-        versionCode 61
-        versionName "1.51"
+        versionCode 79
+        versionName "1.74"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -25,8 +25,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     buildFeatures {
         viewBinding true
@@ -38,13 +38,13 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'com.google.android.material:material:1.13.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.9.3'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.3'
-    implementation 'androidx.navigation:navigation-fragment:2.9.4'
-    implementation 'androidx.navigation:navigation-ui:2.9.4'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.9.4'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4'
+    implementation 'androidx.navigation:navigation-fragment:2.9.5'
+    implementation 'androidx.navigation:navigation-ui:2.9.5'
     implementation 'androidx.annotation:annotation:1.9.1'
     implementation 'com.google.firebase:firebase-auth-ktx:23.2.1'
-    implementation 'com.google.firebase:firebase-messaging:25.0.0'
+    implementation 'com.google.firebase:firebase-messaging:25.0.1'
     implementation 'com.google.android.gms:play-services-maps:19.2.0'
     implementation 'com.google.android.gms:play-services-location:21.3.0'
     implementation 'com.google.android.gms:play-services-auth:21.4.0'
@@ -53,17 +53,16 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
     implementation 'com.android.volley:volley:1.2.1'
     implementation 'com.google.code.gson:gson:2.13.2'
-    implementation 'com.airbnb.android:lottie:6.6.7'
+    implementation 'com.airbnb.android:lottie:6.6.10'
     implementation 'com.github.bumptech.glide:glide:5.0.5'
     annotationProcessor 'com.github.bumptech.glide:compiler:5.0.5'
-    implementation('com.google.gms:google-services:4.4.3')
     // Circle Indicator (To fix the xml preview "Missing classes" error)
     implementation 'me.relex:circleindicator:2.1.6'
 
     implementation 'org.imaginativeworld.whynotimagecarousel:whynotimagecarousel:2.1.1'
 
     // Import the BoM for the Firebase platform
-    implementation(platform("com.google.firebase:firebase-bom:34.2.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
 
     implementation "androidx.credentials:credentials:1.5.0"
     implementation "androidx.credentials:credentials-play-services-auth:1.5.0"
@@ -80,6 +79,8 @@ dependencies {
     implementation 'com.squareup.picasso:picasso:2.71828'
     implementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '10.5'
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.70'
+    // Google Tink for Ed25519/X25519 used by nimbus-jose-jwt
+    implementation 'com.google.crypto.tink:tink-android:1.11.0'
     implementation 'com.squareup.retrofit2:retrofit:3.0.0'
     implementation 'com.squareup.retrofit2:converter-gson:3.0.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:5.1.0'

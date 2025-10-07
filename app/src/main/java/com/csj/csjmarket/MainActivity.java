@@ -178,7 +178,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if (mAuth.getCurrentUser() == null){
+        boolean isDebug = BuildConfig.DEBUG;
+        if (!isDebug && mAuth.getCurrentUser() == null){
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
             finish();

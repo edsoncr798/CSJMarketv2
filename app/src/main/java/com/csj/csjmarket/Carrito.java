@@ -28,6 +28,7 @@ public class Carrito extends AppCompatActivity implements itemCarritoAdapter.OnI
     private SharedPreferences sharedPreferences;
     private Double montoTotal = 0.0;
     private Double pesoTotal = 0.0;
+    private java.util.Map<Integer, com.csj.csjmarket.modelos.StockInfo> stockMap = new java.util.HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,6 +104,16 @@ public class Carrito extends AppCompatActivity implements itemCarritoAdapter.OnI
         if (carrito!=null) {
             binding.rvListaCarrito.setLayoutManager(new LinearLayoutManager(this));
             adaptadorCarrito = new itemCarritoAdapter(carrito, this);
+            // intentar cargar stock desde preferencias si existe
+            try {
+                SharedPreferences sp = getSharedPreferences("stockInfo", MODE_PRIVATE);
+                String stockJson = sp.getString("stockMap", null);
+                if (stockJson != null) {
+                    java.lang.reflect.Type tipoMapa = new com.google.gson.reflect.TypeToken<java.util.Map<Integer, com.csj.csjmarket.modelos.StockInfo>>(){}.getType();
+                    java.util.Map<Integer, com.csj.csjmarket.modelos.StockInfo> stockMap = new com.google.gson.Gson().fromJson(stockJson, tipoMapa);
+                    adaptadorCarrito.setStockMap(stockMap);
+                }
+            } catch (Exception ignored) {}
             adaptadorCarrito.setOnItemChangedListener(this);
             binding.rvListaCarrito.setAdapter(adaptadorCarrito);
             adaptadorCarrito.notifyDataSetChanged();

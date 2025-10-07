@@ -7,11 +7,13 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.csj.csjmarket.databinding.ActivityVerProductoBinding;
 import com.csj.csjmarket.modelos.MiCarrito;
 import com.csj.csjmarket.modelos.Producto;
+import com.csj.csjmarket.modelos.StockInfo;
 import com.csj.csjmarket.ui.Ayudas;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -28,6 +30,8 @@ public class VerProducto extends AppCompatActivity {
     private Gson gson = new Gson();
     private ArrayList<MiCarrito> miCarrito;
     private boolean editar = false;
+    private StockInfo stockInfo;
+    private int stockFisico = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +46,21 @@ public class VerProducto extends AppCompatActivity {
         miCarrito = gson.fromJson(sharedPreferences.getString("carrito", ""), typeS);
 
         producto = (Producto) getIntent().getSerializableExtra("producto");
+        stockInfo = (StockInfo) getIntent().getSerializableExtra("stockInfo");
+        if (stockInfo != null) {
+            int disponibleUnidades = Math.max(stockInfo.getStockFisico() - stockInfo.getStockPorEntregar(), 0);
+            stockFisico = disponibleUnidades;
+        } else {
+            stockFisico = 0;
+        }
+        // Ajuste de cantidad visible acorde al stock disponible
+        if (stockFisico <= 0) {
+            cantidad = 0;
+            binding.vpTxtCantidad.setText(cantidad.toString());
+        } else if (binding.vpTxtCantidad.getText().toString().equals("")) {
+            cantidad = 1;
+            binding.vpTxtCantidad.setText(cantidad.toString());
+        }
         if (producto.getFactor() == 1){
             binding.seccionUnidades.setVisibility(View.GONE);
         }
@@ -54,15 +73,25 @@ public class VerProducto extends AppCompatActivity {
                 .placeholder(R.drawable.default_image)
                 .into(binding.vpImagenProducto);
 
+        // Mostrar stock disponible en la vista de cantidad
+        binding.vpTxtStockDisponible.setText("Stock: " + stockFisico);
+        // Mostrar código del producto debajo del stock
+        binding.vpTxtCodigoProducto.setText("Código: " + producto.getCodigo());
+
         binding.vpBtnAumentar.setOnClickListener(view -> {
             if (binding.vpTxtCantidad.getText().toString().equals("")){
                 cantidad = 1;
                 binding.vpTxtCantidad.setText(cantidad.toString());
             }else {
                 cantidad = Integer.parseInt(binding.vpTxtCantidad.getText().toString());
-                cantidad++;
-                binding.vpTxtCantidad.setText(cantidad.toString());
+                if (cantidad >= stockFisico) {
+                    mostrarMaximoStock();
+                } else {
+                    cantidad++;
+                    binding.vpTxtCantidad.setText(cantidad.toString());
+                }
             }
+            verificarBotonIncremento();
         });
 
         binding.vpBtnDisminuir.setOnClickListener(view -> {
@@ -76,6 +105,7 @@ public class VerProducto extends AppCompatActivity {
                     binding.vpTxtCantidad.setText(cantidad.toString());
                 }
             }
+            verificarBotonIncremento();
         });
 
         binding.vpTxtCantidad.addTextChangedListener(new TextWatcher() {
@@ -102,6 +132,12 @@ public class VerProducto extends AppCompatActivity {
                     cantidad = 0;
                     binding.vpTxtCantidad.setText(cantidad.toString());
                 }
+                if (cantidad > stockFisico) {
+                    cantidad = stockFisico;
+                    binding.vpTxtCantidad.setText(cantidad.toString());
+                    mostrarMaximoStock();
+                }
+                verificarBotonIncremento();
             }
         });
 
@@ -157,5 +193,24 @@ public class VerProducto extends AppCompatActivity {
             }
             finish();
         });
+
+        verificarBotonIncremento();
+    }
+
+    private void mostrarSinStock() {
+        Toast.makeText(this, "Producto sin stock", Toast.LENGTH_SHORT).show();
+    }
+
+    private void mostrarMaximoStock() {
+        if (stockFisico > 0) {
+            Toast.makeText(this, "Stock máximo: " + stockFisico, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Stock no disponible", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void verificarBotonIncremento() {
+        boolean habilitar = cantidad < stockFisico;
+        binding.vpBtnAumentar.setEnabled(habilitar);
     }
 }

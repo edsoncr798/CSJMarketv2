@@ -13,9 +13,6 @@ import android.os.CancellationSignal;
 import android.util.Log;
 import android.view.View;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.IntentSenderRequest;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -38,12 +35,6 @@ import com.csj.csjmarket.modelos.ValidarCorreo;
 import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
-import com.google.android.play.core.appupdate.AppUpdateInfo;
-import com.google.android.play.core.appupdate.AppUpdateManager;
-import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
-import com.google.android.play.core.appupdate.AppUpdateOptions;
-import com.google.android.play.core.install.model.AppUpdateType;
-import com.google.android.play.core.install.model.UpdateAvailability;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -59,16 +50,13 @@ public class LoginActivity extends AppCompatActivity {
     private AlertDialog alertDialog;
     private ValidarCorreo validarCorreo;
     private CredentialManager credentialManager;
-
-    private AppUpdateManager appUpdateManager;
-    private ActivityResultLauncher<IntentSenderRequest> activityResultLauncher;
+    private ActivityLoginBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
 
-        ActivityLoginBinding binding = ActivityLoginBinding.inflate(getLayoutInflater());
+        binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         SharedPreferences sharedPreferences = this.getSharedPreferences("carritoInfo", MODE_PRIVATE);
@@ -79,71 +67,18 @@ public class LoginActivity extends AppCompatActivity {
 
         binding.loginBtnGoogle.setOnClickListener(view -> signIn());
 
-        appUpdateManager = AppUpdateManagerFactory.create(this);
-
-        activityResultLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartIntentSenderForResult(),
-                result -> {
-                    if (result.getResultCode() != RESULT_OK) {
-                        Log.e("ERROR ACTUALIZACION: ", "La actualización FALLO: " + result.getResultCode());
-                        // El usuario canceló o falló la actualización
-                        // Para "IMMEDIATE" normalmente bloqueas el uso o vuelves a pedir la actualización
-                        showForceUpdateDialog();
-                    }
-                }
-        );
-
-        checkForImmediateUpdate();
+        // Solicitar permisos de notificaciones
         solicitarPermisoNotificaciones();
+        
+        // Si el usuario ya está autenticado, continuar con el flujo normal
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            mostrarLoader();
+            updateUI(currentUser);
+        }
     }
 
-    private void checkForImmediateUpdate() {
-        Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
 
-        appUpdateInfoTask.addOnSuccessListener(appUpdateInfo -> {
-            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
-                    && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
-                try {
-                    appUpdateManager.startUpdateFlowForResult(
-                            appUpdateInfo,
-                            activityResultLauncher,
-                            AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE)
-                                    .build()
-                    );
-                } catch (Exception e) {
-                    Log.e("ERROR", Objects.requireNonNull(e.getMessage()));
-                }
-            }
-        });
-    }
-
-    private void showForceUpdateDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle("Actualización obligatoria")
-                .setMessage("Debes actualizar la aplicación para continuar usando el servicio.")
-                .setCancelable(false) //
-                .setPositiveButton("Actualizar", (dialog, which) -> checkForImmediateUpdate())
-                .setNegativeButton("Salir", (dialog, which) -> finishAffinity())
-                .show();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        appUpdateManager
-                .getAppUpdateInfo()
-                .addOnSuccessListener(
-                        appUpdateInfo -> {
-                            if (appUpdateInfo.updateAvailability()
-                                    == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
-                                // If an in-app update is already running, resume the update.
-                                appUpdateManager.startUpdateFlowForResult(
-                                        appUpdateInfo,
-                                        activityResultLauncher,
-                                        AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build());
-                            }
-                        });
-    }
 
     private void solicitarPermisoNotificaciones(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -162,10 +97,8 @@ public class LoginActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 1) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permiso concedido
-                Log.e("PERMISO NOTIFICACIONES: ", "CONCEDIDO");
+                Log.e("PERMISO NOTIFICACIONES", "CONCEDIDO");
             } else {
-                // Permiso denegado
                 solicitarPermisoNotificaciones();
             }
         }
@@ -174,7 +107,6 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     public void onStart() {
         super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null){
             mostrarLoader();
@@ -183,20 +115,15 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void signIn() {
-        // [START create_credential_manager_request]
-        // Instantiate a Google sign-in request
         GetGoogleIdOption googleIdOption = new GetGoogleIdOption.Builder()
                 .setFilterByAuthorizedAccounts(false)
                 .setServerClientId(getString(R.string.default_web_client_id))
                 .build();
 
-        // Create the Credential Manager request
         GetCredentialRequest request = new GetCredentialRequest.Builder()
                 .addCredentialOption(googleIdOption)
                 .build();
-        // [END create_credential_manager_request]
 
-        // Launch Credential Manager UI
         credentialManager.getCredentialAsync(
                 this,
                 request,
@@ -216,19 +143,15 @@ public class LoginActivity extends AppCompatActivity {
         );
     }
 
-    // [START handle_sign_in]
     private void handleSignIn(Credential credential) {
-        // Verificar si es un CustomCredential
         if (credential instanceof CustomCredential) {
             CustomCredential customCredential = (CustomCredential) credential;
 
             if (credential.getType().equals(TYPE_GOOGLE_ID_TOKEN_CREDENTIAL)) {
-                // Crear Google ID Token
                 Bundle credentialData = customCredential.getData();
                 GoogleIdTokenCredential googleIdTokenCredential =
                         GoogleIdTokenCredential.createFrom(credentialData);
 
-                // Iniciar sesión en Firebase con el token
                 firebaseAuthWithGoogle(googleIdTokenCredential.getIdToken());
             } else {
                 mostrarAlerta("Algo salió mal, inténtelo nuevamente.");
@@ -237,18 +160,15 @@ public class LoginActivity extends AppCompatActivity {
             mostrarAlerta("Ocurrio un error al validar los datos de Google.");
         }
     }
-    // [END handle_sign_in]
 
     private void firebaseAuthWithGoogle(String idToken) {
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        // Sign in success, update UI with the signed-in user's information
                         FirebaseUser user = mAuth.getCurrentUser();
                         updateUI(user);
                     } else {
-                        // If sign in fails, display a message to the user.
                         updateUI(null);
                     }
                 });
@@ -316,19 +236,15 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void acceder(String correo, String nombre, String imagen) {
-        //mostrarLoader();
-        //String url = getString(R.string.connection) + "/api/validarCorreos?correo=" + correo;
         String url = getString(R.string.connection) + "/api/validarCorreos/nuevo?correo=" + correo;
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, response -> {
             Gson gson = new Gson();
-//            Type validartListType = new TypeToken<ValidarCorreo>() {
-//            }.getType();
             validarCorreo = gson.fromJson(response.toString(), ValidarCorreo.class);
             if (alertDialog != null){
                 alertDialog.dismiss();
             }
 
-            if (validarCorreo != null) {  // validar que gson devolvió algo
+            if (validarCorreo != null) {
                 if (validarCorreo.getId() != 0) {
                     irMain(correo, nombre, validarCorreo, imagen);
                 } else {

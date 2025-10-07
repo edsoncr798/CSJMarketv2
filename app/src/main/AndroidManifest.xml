@@ -18,7 +18,8 @@
         android:roundIcon="@mipmap/csj_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CsjMarket"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        android:pageSizeCompat="enabled">
         <activity
             android:name=".RecuperarCorreo"
             android:exported="false">
@@ -109,15 +110,20 @@
                 android:value="" />
         </activity>
         <activity
+            android:name=".SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.CsjMarket.NoActionBar"
+            android:noHistory="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name=".LoginActivity"
             android:exported="true"
             android:theme="@style/Theme.CsjMarket">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
         </activity>
         <activity
             android:name=".MainActivity"

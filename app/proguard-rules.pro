@@ -14,7 +14,7 @@
 
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+-keepattributes SourceFile,LineNumberTable
 
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
@@ -87,14 +87,17 @@
 -keep class androidx.multidex.** { *; }
 
 -dontwarn com.android.volley.toolbox.**
-
+-keep class com.android.volley.** { *; }
+-dontwarn com.android.volley.**
 -keep class me.relex.circleindicator.** { *; }
 -keep class com.airbnb.lottie.** { *; }
 -keep class org.imaginativeworld.whynotimagecarousel.** { *; }
 
--keep class com.visanet.** { *; }
--keep class com.cardinalcommerce.** { *; }
--keep class com.threatmetrix.** { *; }
+-dontwarn com.visanet.**
+-dontwarn lib.visanet.**
+-dontwarn com.cardinalcommerce.**
+-dontwarn com.threatmetrix.**
+-dontwarn com.lexisnexisrisk.threatmetrix.**
 
 # Mantener clases usadas con Gson
 -keep class com.google.gson.stream.** { *; }
@@ -118,3 +121,30 @@
 -keepattributes AnnotationDefault,RuntimeVisibleAnnotations
 -keep class com.google.gson.reflect.TypeToken { <fields>; }
 -keepclassmembers class **$TypeAdapterFactory { <fields>; }
+
+# Suprimir logs en release: eliminar llamadas a android.util.Log
+-assumenosideeffects class android.util.Log {
+    public static int v(java.lang.String, java.lang.String);
+    public static int v(java.lang.String, java.lang.String, java.lang.Throwable);
+    public static int d(java.lang.String, java.lang.String);
+    public static int d(java.lang.String, java.lang.String, java.lang.Throwable);
+    public static int i(java.lang.String, java.lang.String);
+    public static int i(java.lang.String, java.lang.String, java.lang.Throwable);
+    public static int w(java.lang.String, java.lang.String);
+    public static int w(java.lang.String, java.lang.String, java.lang.Throwable);
+    public static int e(java.lang.String, java.lang.String);
+    public static int e(java.lang.String, java.lang.String, java.lang.Throwable);
+}
+
+# Reglas faltantes para Niubiz SDK 2.2.1 (R8 missing classes)
+-dontwarn com.mastercard.sonic.controller.SonicController
+-dontwarn com.mastercard.sonic.controller.SonicEnvironment
+-dontwarn com.mastercard.sonic.controller.SonicType
+-dontwarn com.mastercard.sonic.listeners.OnPrepareListener
+-dontwarn com.mastercard.sonic.model.SonicMerchant$Builder
+-dontwarn com.mastercard.sonic.model.SonicMerchant
+-dontwarn com.mastercard.sonic.widget.SonicBackground
+-dontwarn com.mastercard.sonic.widget.SonicView
+-dontwarn com.visa.CheckmarkMode
+-dontwarn com.visa.CheckmarkTextOption
+-dontwarn com.visa.SensoryBrandingView

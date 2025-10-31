@@ -112,10 +112,11 @@
 
     </LinearLayout>
     <LinearLayout
-        android:id="@+id/contenedorOpciones"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal">
+            android:id="@+id/contenedorOpciones"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:visibility="gone">
 
         <LinearLayout
             android:id="@+id/icarrito_btnEliminar"

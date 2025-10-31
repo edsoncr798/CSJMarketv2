@@ -25,11 +25,15 @@ import com.csj.csjmarket.databinding.ActivityMainBinding;
 import com.csj.csjmarket.modelos.ValidarCorreo;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.messaging.FirebaseMessaging;
+import android.content.SharedPreferences;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final boolean DEBUG_MODE = false;
 
     private AppBarConfiguration mAppBarConfiguration;
 
@@ -77,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
+
         navController.addOnDestinationChangedListener(new NavController.OnDestinationChangedListener() {
             @Override
             public void onDestinationChanged(@NonNull NavController navController, @NonNull NavDestination navDestination, @Nullable Bundle bundle) {
@@ -118,25 +123,53 @@ public class MainActivity extends AppCompatActivity {
 
         if(id == R.id.action_settings) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            View view = getLayoutInflater().inflate(R.layout.dialogo_creditos, null);
-            TextView correo = view.findViewById(R.id.correo);
-            correo.setOnClickListener(view1 -> {
-                String[] recipients = {"faustoarias1692@gmil.com"}; // Agrega la dirección de correo del destinatario aquí
-                String subject = "Quiero un nuevo sistema"; // Asunto del correo
-                String body = "Quiero un nuevo sistema para mi empresa"; // Contenido del correo
 
-                Intent intent = new Intent(Intent.ACTION_SEND);
-                intent.putExtra(Intent.EXTRA_EMAIL, recipients);
-                intent.putExtra(Intent.EXTRA_SUBJECT, subject);
-                intent.putExtra(Intent.EXTRA_TEXT, body);
-                intent.setType("message/rfc822"); // Esto asegura que se abra el cliente de correo electrónico
+            // Contenedor que incluye créditos + switch de API beta
+            android.widget.LinearLayout container = new android.widget.LinearLayout(this);
+            container.setOrientation(android.widget.LinearLayout.VERTICAL);
+            int padding = (int) (16 * getResources().getDisplayMetrics().density);
+            container.setPadding(padding, padding, padding, padding);
 
-                startActivity(Intent.createChooser(intent, "Elige una aplicación de correo:"));
+            View creditsView = getLayoutInflater().inflate(R.layout.dialogo_creditos, null);
+            container.addView(creditsView);
+
+            // Switch para activar/desactivar API beta
+            android.widget.Switch switchBeta = new android.widget.Switch(this);
+            switchBeta.setText("Usar API beta (optimizada)");
+            SharedPreferences sp = getSharedPreferences("csjmarket_prefs", MODE_PRIVATE);
+            boolean current = sp.getBoolean("use_api_beta", BuildConfig.DEBUG);
+            switchBeta.setChecked(current);
+            container.addView(switchBeta);
+
+            // Listener del correo original
+            TextView correo = creditsView.findViewById(R.id.correo);
+            if (correo != null) {
+                correo.setOnClickListener(view1 -> {
+                    String[] recipients = {"faustoarias1692@gmil.com"};
+                    String subject = "Quiero un nuevo sistema";
+                    String body = "Quiero un nuevo sistema para mi empresa";
+
+                    Intent intent = new Intent(Intent.ACTION_SEND);
+                    intent.putExtra(Intent.EXTRA_EMAIL, recipients);
+                    intent.putExtra(Intent.EXTRA_SUBJECT, subject);
+                    intent.putExtra(Intent.EXTRA_TEXT, body);
+                    intent.setType("message/rfc822");
+
+                    startActivity(Intent.createChooser(intent, "Elige una aplicación de correo:"));
+                });
+            }
+
+            switchBeta.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                try {
+                    sp.edit().putBoolean("use_api_beta", isChecked).apply();
+                    android.widget.Toast.makeText(this, isChecked ? "API beta activada" : "API beta desactivada", android.widget.Toast.LENGTH_SHORT).show();
+                    android.util.Log.i("Config", "use_api_beta = " + isChecked);
+                } catch (Exception ignore) {}
             });
-            builder.setView(view).setPositiveButton("Aceptar", null)
-                    .setCancelable(true);
-            AlertDialog dialogo_creditos = builder.create();
-            dialogo_creditos.show();
+
+            builder.setView(container).setPositiveButton("Aceptar", null).setCancelable(true);
+            AlertDialog dialogo = builder.create();
+            dialogo.show();
             return true;
         }
         else if (id == R.id.action_contactUs){
@@ -178,12 +211,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        boolean isDebug = BuildConfig.DEBUG;
+        boolean isDebug = DEBUG_MODE;
         if (!isDebug && mAuth.getCurrentUser() == null){
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
             finish();
         }
     }
+
 
 }

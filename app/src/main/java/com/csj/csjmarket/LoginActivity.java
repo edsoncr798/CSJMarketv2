@@ -1,6 +1,5 @@
 package com.csj.csjmarket;
 
-import static com.behaviosec.pppppdd.TAG;
 import static com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL;
 
 import android.Manifest;
@@ -30,6 +29,9 @@ import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.TimeoutError;
+import com.android.volley.NoConnectionError;
 import com.csj.csjmarket.databinding.ActivityLoginBinding;
 import com.csj.csjmarket.modelos.ValidarCorreo;
 import com.google.android.gms.tasks.Task;
@@ -45,6 +47,8 @@ import java.util.Objects;
 import java.util.concurrent.Executors;
 
 public class LoginActivity extends AppCompatActivity {
+
+    private static final String TAG = "LoginActivity";
 
     private FirebaseAuth mAuth;
     private AlertDialog alertDialog;
@@ -257,15 +261,23 @@ public class LoginActivity extends AppCompatActivity {
             if (alertDialog != null){
                 alertDialog.dismiss();
             }
-            NetworkResponse networkResponse = error.networkResponse;
-            if (networkResponse!= null){
-                String errorMessage = new String(networkResponse.data);
-                mostrarAlerta(errorMessage);
-            }
-            else{
-                mostrarAlerta(error.toString());
+            if (error instanceof TimeoutError) {
+                mostrarAlerta("Tiempo de espera agotado al validar correo.");
+            } else if (error instanceof NoConnectionError) {
+                mostrarAlerta("Sin conexión al validar correo.");
+            } else {
+                NetworkResponse networkResponse = error.networkResponse;
+                if (networkResponse!= null && networkResponse.data != null){
+                    String errorMessage = new String(networkResponse.data);
+                    mostrarAlerta(errorMessage);
+                }
+                else{
+                    mostrarAlerta(error.toString());
+                }
             }
         });
+        jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(15000, 1, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        jsonObjectRequest.setShouldCache(false);
         Volley.newRequestQueue(this).add(jsonObjectRequest);
     }
 }

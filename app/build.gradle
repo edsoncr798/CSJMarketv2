@@ -3,6 +3,11 @@ plugins {
     id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
     id 'com.google.gms.google-services'
 }
+def keystorePropsFile = rootProject.file('keystore.properties')
+def keystoreProperties = new Properties()
+if (keystorePropsFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropsFile))
+}
 android {
     namespace 'com.csj.csjmarket'
     compileSdkVersion 36
@@ -11,8 +16,8 @@ android {
         applicationId "com.csj.csjmarket"
         minSdk 28
         targetSdk 35
-        versionCode 79
-        versionName "1.74"
+        versionCode 132
+        versionName "2.7.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -22,6 +27,14 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // signingConfig will be picked from Play App Signing; keep unset locally
+            ndk {
+                debugSymbolLevel 'FULL'
+            }
+        }
+        debug {
+            // Explicitly disable minify in debug
+            minifyEnabled false
         }
     }
     compileOptions {
@@ -29,8 +42,8 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
     buildFeatures {
-        viewBinding true
-        buildConfig true
+        viewBinding = true
+        buildConfig = true
     }
 }
 
@@ -62,7 +75,7 @@ dependencies {
     implementation 'org.imaginativeworld.whynotimagecarousel:whynotimagecarousel:2.1.1'
 
     // Import the BoM for the Firebase platform
-    implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
 
     implementation "androidx.credentials:credentials:1.5.0"
     implementation "androidx.credentials:credentials-play-services-auth:1.5.0"
@@ -80,18 +93,12 @@ dependencies {
     implementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '10.5'
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.70'
     // Google Tink for Ed25519/X25519 used by nimbus-jose-jwt
-    implementation 'com.google.crypto.tink:tink-android:1.11.0'
+    implementation 'com.google.crypto.tink:tink-android:1.18.0'
     implementation 'com.squareup.retrofit2:retrofit:3.0.0'
     implementation 'com.squareup.retrofit2:converter-gson:3.0.0'
-    implementation 'com.squareup.okhttp3:logging-interceptor:5.1.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:5.2.1'
 
-    implementation files('libs/visanet-lib-lite-release-2.1.29.aar')
-    implementation files('libs/cardinalmobilesdk-2.2.7-5.aar')
-    implementation files('libs/TMXAuthentication-7.3-52.aar')
-    implementation files('libs/TMXBehavioSec-7.3-52.aar')
-    implementation files('libs/TMXDeviceSecurityHealth-7.3-52.aar')
-    implementation files('libs/TMXProfiling-7.3-52.aar')
-    implementation files('libs/TMXProfilingConnections-7.3-52.aar')
+    implementation files('libs/visanet-lib-lite-release-2.2.1.aar')
 
     implementation 'com.google.android.play:app-update:2.1.0'
     implementation 'com.google.android.play:app-update-ktx:2.1.0'

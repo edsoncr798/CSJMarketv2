@@ -10,6 +10,7 @@ public class ItemPedido {
     private int cantidad;
     private double precio;
     private double total;
+    private boolean tieneBono; // NUEVO: Indica si el producto tiene bonificación
 
     public void setIdCp(int idCp) {
         this.idCp = idCp;
@@ -45,5 +46,15 @@ public class ItemPedido {
 
     public void setTotal(double total) {
         this.total = total;
+    }
+
+    // NUEVO: Setter para tieneBono
+    public void setTieneBono(boolean tieneBono) {
+        this.tieneBono = tieneBono;
+    }
+
+    // NUEVO: Getter para tieneBono
+    public boolean isTieneBono() {
+        return tieneBono;
     }
 }

@@ -5,6 +5,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
 import android.content.Intent;
@@ -20,17 +21,17 @@ import android.view.animation.AnimationUtils;
 
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.TimeoutError;
+import com.android.volley.NoConnectionError;
 import com.bumptech.glide.Glide;
 import com.csj.csjmarket.databinding.ActivityProductosCategoriaBinding;
-import com.csj.csjmarket.databinding.ActivityVerProductoBinding;
 import com.csj.csjmarket.modelos.MiCarrito;
 import com.csj.csjmarket.modelos.Producto;
 import com.csj.csjmarket.modelos.StockInfo;
 import com.csj.csjmarket.ui.adaptadores.ProductoAdapter;
-import com.csj.csjmarket.ui.vistas.inicio;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -40,25 +41,23 @@ import org.json.JSONObject;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ProductosCategoria extends AppCompatActivity {
 
-    private ArrayList<Producto> productos = new ArrayList<>();
+    private final ArrayList<Producto> productos = new ArrayList<>();
     private ArrayList<Producto> productosFiltrado = new ArrayList<>();
     private ActivityProductosCategoriaBinding binding;
     private AlertDialog alertDialog;
     private Gson gson = new Gson();
     private SharedPreferences sharedPreferences;
     private String carritoString;
-    private LinearLayoutManager layoutManager;
+    private GridLayoutManager layoutManager;
     private String rucProveedor;
     private String idProveedor;
     private int lastVisibleItemPosition;
-    private Map<Integer, StockInfo> stockMap = new HashMap<>();
+    private ProductoAdapter productoAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +74,15 @@ public class ProductosCategoria extends AppCompatActivity {
 
         layoutManager = new GridLayoutManager(this, 2, LinearLayoutManager.VERTICAL, false);
         binding.provRvListaProducto.setLayoutManager(layoutManager);
+        productoAdapter = new ProductoAdapter(productos);
+        binding.provRvListaProducto.setAdapter(productoAdapter);
+        layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                int viewType = productoAdapter.getItemViewType(position);
+                return viewType == 2 ? layoutManager.getSpanCount() : 1;
+            }
+        });
 
         Glide.with(this)
                 .load(this.getString(R.string.connection) + "/proveedor/" + rucProveedor + ".jpg")
@@ -95,7 +103,21 @@ public class ProductosCategoria extends AppCompatActivity {
 
         binding.provFab.setOnClickListener(view1 -> {
             Intent intent = new Intent(this, Carrito.class);
-            intent.putExtra("idPersona", getIntent().getStringExtra("idPersona"));
+            String idPersona = getIntent().getStringExtra("idPersona");
+            if (idPersona == null || idPersona.isEmpty()) {
+                try {
+                    com.csj.csjmarket.modelos.ValidarCorreo vc = (com.csj.csjmarket.modelos.ValidarCorreo) getIntent().getSerializableExtra("validarCorreo");
+                    if (vc != null && vc.getId() != null) {
+                        idPersona = String.valueOf(vc.getId());
+                    }
+                } catch (Exception ignored) {}
+                if (idPersona == null || idPersona.isEmpty()) {
+                    idPersona = getIntent().getStringExtra("id");
+                }
+            }
+            if (idPersona != null && !idPersona.isEmpty()) {
+                intent.putExtra("idPersona", idPersona);
+            }
             intent.putExtra("email", getIntent().getStringExtra("email"));
             intent.putExtra("docIden", getIntent().getStringExtra("docIden"));
             intent.putExtra("diasUltCompra", getIntent().getStringExtra("diasUltCompra"));
@@ -103,6 +125,7 @@ public class ProductosCategoria extends AppCompatActivity {
             this.startActivity(intent);
         });
 
+        // Paginación eliminada: sin scroll infinito
         recargar(this);
     }
 
@@ -128,63 +151,64 @@ public class ProductosCategoria extends AppCompatActivity {
 
     private void recargar(Context context) {
         mostrarLoader();
-        String url = getString(R.string.connection) + "/api/productoscategoria?idProveedor=" + idProveedor;
-        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null, response -> {
-            Type productListType = new TypeToken<List<Producto>>() {
-            }.getType();
-            productos = gson.fromJson(response.toString(), productListType);
-            ProductoAdapter productoAdapter = new ProductoAdapter(productos, stockMap);
-            binding.provRvListaProducto.setAdapter(productoAdapter);
-            productoAdapter.notifyDataSetChanged();
-            alertDialog.dismiss();
-            cargarStock(context);
-        }, error -> {
-            alertDialog.dismiss();
-            NetworkResponse networkResponse = error.networkResponse;
-            if (networkResponse!= null){
-                String errorMessage = new String(networkResponse.data);
-                mostrarAlerta(errorMessage);
-            }
-            else{
-                mostrarAlerta(error.toString());
-            }
-        });
-        Volley.newRequestQueue(context).add(jsonArrayRequest);
-    }
+        String url = getString(R.string.connection) + "/api/productoscategoria/v2?idProveedor=" + idProveedor;
 
-    private void cargarStock(Context context) {
-        String url = "https://api.comsanjuan.com:8443/api/products/stock";
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, response -> {
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, responseStr -> {
+            if (alertDialog != null) alertDialog.dismiss();
             try {
-                JSONArray data = response.getJSONArray("data");
-                Map<Integer, StockInfo> nuevoStock = new HashMap<>();
-                for (int i = 0; i < data.length(); i++) {
-                    JSONArray inner = data.getJSONArray(i);
-                    for (int j = 0; j < inner.length(); j++) {
-                        JSONObject obj = inner.getJSONObject(j);
-                        int id = obj.getInt("Id");
-                        int fisico = obj.getInt("StockFisico");
-                        int porEntregar = obj.getInt("StockPorEntregar");
-                        nuevoStock.put(id, new StockInfo(id, fisico, porEntregar));
-                    }
+                ArrayList<Producto> nuevos;
+                if (responseStr != null && responseStr.trim().startsWith("{")) {
+                    JSONObject obj = new JSONObject(responseStr);
+                    JSONArray arr = obj.optJSONArray("productos");
+                    Type productListType = new TypeToken<List<Producto>>() {}.getType();
+                    nuevos = gson.fromJson(arr != null ? arr.toString() : "[]", productListType);
+                } else {
+                    JSONArray arr = new JSONArray(responseStr);
+                    Type productListType = new TypeToken<List<Producto>>() {}.getType();
+                    nuevos = gson.fromJson(arr.toString(), productListType);
                 }
-                stockMap = nuevoStock;
-                // Guardar mapa de stock en SharedPreferences para uso en Carrito
-                android.content.SharedPreferences sp = context.getSharedPreferences("stockInfo", android.content.Context.MODE_PRIVATE);
-                sp.edit().putString("stockMap", new com.google.gson.Gson().toJson(stockMap)).apply();
-                
-                if (binding.provRvListaProducto.getAdapter() != null) {
-                    ProductoAdapter productoAdapter = new ProductoAdapter(productos, stockMap);
-                    binding.provRvListaProducto.setAdapter(productoAdapter);
-                    productoAdapter.notifyDataSetChanged();
+
+                productos.clear();
+                productos.addAll(nuevos);
+                productoAdapter.productos = productos;
+                productoAdapter.notifyDataSetChanged();
+
+                // Persistir mapa de stock desde productos para el carrito
+                SharedPreferences sp = context.getSharedPreferences("stockInfo", MODE_PRIVATE);
+                java.util.Map<Integer, StockInfo> map = new java.util.HashMap<>();
+                for (Producto p : productos) {
+                    map.put(p.getId(), new StockInfo(p.getId(), p.getStockFisico(), p.getStockPorEntregar()));
                 }
-            } catch (JSONException e) {
-                // Ignorar parse por ahora
+                sp.edit().putString("stockMap", new Gson().toJson(map)).apply();
+            } catch (Exception e) {
+                mostrarAlerta(e.getMessage());
             }
         }, error -> {
-            // Silencioso
-        });
-        Volley.newRequestQueue(context).add(jsonObjectRequest);
+            if (alertDialog != null) alertDialog.dismiss();
+            if (error instanceof TimeoutError) {
+                mostrarAlerta("Tiempo de espera agotado. Verifique su conexión y reintente.");
+            } else if (error instanceof NoConnectionError) {
+                mostrarAlerta("Sin conexión con el servidor. Revise su internet o el servicio.");
+            } else {
+                NetworkResponse networkResponse = error.networkResponse;
+                if (networkResponse != null && networkResponse.data != null) {
+                    String errorMessage = new String(networkResponse.data);
+                    mostrarAlerta(errorMessage);
+                } else {
+                    mostrarAlerta(error.toString());
+                }
+            }
+        }) {
+            @Override
+            public java.util.Map<String, String> getHeaders() {
+                java.util.Map<String, String> headers = new java.util.HashMap<>();
+                headers.put("Accept", "application/json");
+                return headers;
+            }
+        };
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(15000, 1, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        stringRequest.setShouldCache(false);
+        Volley.newRequestQueue(context).add(stringRequest);
     }
 
     public class validacionTextWatcher implements TextWatcher {
@@ -210,16 +234,26 @@ public class ProductosCategoria extends AppCompatActivity {
     }
 
     private void filtrarXNombre(){
-        String textoBusqueda = binding.provTxtBuscarProducto.getText().toString().toUpperCase();
+        String textoBusqueda = binding.provTxtBuscarProducto.getText().toString().toUpperCase().trim();
+        if (textoBusqueda.isEmpty()) {
+            // Mostrar lista completa con scroll infinito
+            binding.provRvListaProducto.setAdapter(productoAdapter);
+            productoAdapter.notifyDataSetChanged();
+            productoAdapter.setMostrarLoaderAlFinal(false);
+            return;
+        }
+
         productosFiltrado = (ArrayList<Producto>) productos
                 .stream()
                 .filter(x -> x.getNombre().toUpperCase().contains(textoBusqueda)
                         || (x.getCodigo() != null && x.getCodigo().toUpperCase().contains(textoBusqueda)))
                 .collect(Collectors.toList());
 
-        ProductoAdapter productoAdapter = new ProductoAdapter(productosFiltrado, stockMap);
-        binding.provRvListaProducto.setAdapter(productoAdapter);
-        productoAdapter.notifyDataSetChanged();
+        ProductoAdapter adaptadorFiltrado = new ProductoAdapter(productosFiltrado);
+        binding.provRvListaProducto.setAdapter(adaptadorFiltrado);
+        adaptadorFiltrado.notifyDataSetChanged();
+        // Ocultar loader al filtrar
+        productoAdapter.setMostrarLoaderAlFinal(false);
     }
 
     @Override

@@ -44,6 +44,48 @@
                 android:layout_marginStart="8dp"
                 tools:text="Disponible" />
 
+            <!-- Badge de bonificación -->
+            <TextView
+                android:id="@+id/ip_bonusBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:background="@drawable/bg_badge_bonus"
+                android:alpha="0.96"
+                android:visibility="gone"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                tools:text="BONUS" />
+
+            <!-- Ícono/Badge de descuento en la imagen -->
+            <TextView
+                android:id="@+id/ip_descuentoIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:background="@drawable/bg_badge_discount"
+                android:alpha="0.96"
+                android:visibility="gone"
+                app:layout_constraintTop_toTopOf="@+id/ip_fotoProducto"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                tools:text="OFERTA" />
+
             <!-- Nombre del producto debajo de la imagen -->
             <TextView
                 android:id="@+id/ip_nombreProducto"
@@ -55,7 +97,61 @@
                 app:layout_constraintTop_toBottomOf="@+id/ip_fotoProducto"
                 tools:text="Nombre del Producto" />
 
-            <!-- Precio debajo del nombre -->
+            <!-- Contenedor de precios cuando hay oferta (precio anterior y actual) -->
+            <LinearLayout
+                android:id="@+id/ip_contenedorPreciosOferta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:layout_marginTop="6dp"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@+id/ip_nombreProducto">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center">
+
+                    <TextView
+                        android:id="@+id/ip_precioAnterior"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#9E9E9E"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="2dp"
+                        tools:text="S/ 120.00 x UND" />
+
+                    <TextView
+                        android:id="@+id/ip_precioActual"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/holo_red_dark"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        tools:text="S/ 99.90 x UND" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/ip_descuentoBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:paddingLeft="6dp"
+                    android:paddingRight="6dp"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/bg_badge_discount"
+                    tools:text="-25%" />
+            </LinearLayout>
+
+            <!-- Precio clásico (cuando NO hay oferta) -->
             <TextView
                 android:id="@+id/ip_precioProducto"
                 android:layout_width="match_parent"

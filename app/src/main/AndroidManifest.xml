@@ -5,7 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
@@ -18,8 +18,9 @@
         android:roundIcon="@mipmap/csj_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CsjMarket"
-        android:usesCleartextTraffic="true"
-        android:pageSizeCompat="enabled">
+        android:usesCleartextTraffic="false"
+        android:pageSizeCompat="enabled"
+        android:name=".CsjMarketApp">
         <activity
             android:name=".RecuperarCorreo"
             android:exported="false">

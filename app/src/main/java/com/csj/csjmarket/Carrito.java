@@ -3,11 +3,14 @@ package com.csj.csjmarket;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
 import com.csj.csjmarket.databinding.ActivityCarritoBinding;
 import com.csj.csjmarket.databinding.ActivityVerProductoBinding;
@@ -38,11 +41,46 @@ public class Carrito extends AppCompatActivity implements itemCarritoAdapter.OnI
         binding = ActivityCarritoBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Ajuste de padding inferior dinámico para evitar solapamiento con la barra de navegación
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
+            insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            int bottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+            View contenedorInferior = findViewById(R.id.carrito_layoutInferior);
+            if (contenedorInferior != null) {
+                contenedorInferior.setPadding(
+                        contenedorInferior.getPaddingLeft(),
+                        contenedorInferior.getPaddingTop(),
+                        contenedorInferior.getPaddingRight(),
+                        Math.max(contenedorInferior.getPaddingBottom(), bottom)
+                );
+            }
+            return insets;
+        });
+
         binding.vpBtnRegresar.setOnClickListener(view -> finish());
 
         binding.carritoBtnComprar.setOnClickListener(view -> {
             Intent intent = new Intent(Carrito.this, DireccionEntrega.class);
-            intent.putExtra("idPersona", getIntent().getStringExtra("idPersona"));
+            String idPersona = getIntent().getStringExtra("idPersona");
+            if (idPersona == null || idPersona.isEmpty()) {
+                // Fallback a validarCorreo o "id" si vienen desde MainActivity
+                try {
+                    com.csj.csjmarket.modelos.ValidarCorreo vc = (com.csj.csjmarket.modelos.ValidarCorreo) getIntent().getSerializableExtra("validarCorreo");
+                    if (vc != null && vc.getId() != null) {
+                        idPersona = String.valueOf(vc.getId());
+                    }
+                } catch (Exception ignored) {}
+                if (idPersona == null || idPersona.isEmpty()) {
+                    idPersona = getIntent().getStringExtra("id");
+                }
+            }
+
+            if (idPersona == null || idPersona.isEmpty()) {
+                Toast.makeText(Carrito.this, "No se pudo identificar al cliente. Ingrese nuevamente.", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            intent.putExtra("idPersona", idPersona);
             intent.putExtra("email", getIntent().getStringExtra("email"));
             intent.putExtra("docIden", getIntent().getStringExtra("docIden"));
             intent.putExtra("diasUltCompra", getIntent().getStringExtra("diasUltCompra"));

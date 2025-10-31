@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/white">
+
+    <!-- Header con icono y título -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="@string/todo"
+            android:src="@drawable/ic_baseline_info_24"
+            android:layout_marginEnd="8dp"
+            app:tint="@color/secondary" />
+
+        <TextView
+            android:id="@+id/ah_txtTitulo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/aviso_de_horario"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="@color/black" />
+    </LinearLayout>
+
+    <!-- Mensaje -->
+    <TextView
+        android:id="@+id/ah_txtMensaje"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text=""
+        android:textSize="15sp"
+        android:textColor="@color/black" />
+
+    <!-- Botones de acción -->
+    <LinearLayout
+        style="?android:attr/buttonBarStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_marginTop="16dp">
+
+        <Button
+            android:id="@+id/ah_btnNo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minHeight="44dp"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:text="@string/no"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:background="@drawable/estilo_boton_login"
+            android:layout_marginEnd="12dp" />
+
+        <Button
+            android:id="@+id/ah_btnSi"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minHeight="44dp"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:text="@string/s"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:background="@drawable/estilo_boton_login" />
+    </LinearLayout>
+
+</LinearLayout>

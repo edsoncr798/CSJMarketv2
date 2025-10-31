@@ -13,4 +13,7 @@
 
     <color name="primary_variant">#C58E51</color>
     <color name="secondary_variant">#E5B77C</color>
+    <color name="grey">#9E9E9E</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="blue">#2196F3</color>
 </resources>

@@ -11,7 +11,6 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.play.core.appupdate.AppUpdateInfo;
@@ -28,7 +27,7 @@ public class SplashActivity extends AppCompatActivity {
     private static final int MAX_UPDATE_RETRIES = 3;
     private static final long SPLASH_DELAY_MS = 2000; // 2 segundos mínimo de splash
     // MODO DESARROLLO: poner en false antes de subir a producción
-    private static final boolean DEBUG_MODE = true;
+    private static final boolean DEBUG_MODE = false;
 
     private AppUpdateManager appUpdateManager;
     private ActivityResultLauncher<IntentSenderRequest> updateLauncher;
@@ -166,8 +165,6 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void showForceUpdateDialog() {
-        Log.d(TAG, "Mostrando diálogo de actualización forzada");
-        // oculto: texto "Actualización requerida"
         
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("Actualización Requerida")
@@ -207,9 +204,7 @@ public class SplashActivity extends AppCompatActivity {
             // oculto: texto "Reintentando..."
             
             // Esperar un momento antes de reintentar
-            splashHandler.postDelayed(() -> {
-                startUpdateVerification();
-            }, 2000);
+            splashHandler.postDelayed(this::startUpdateVerification, 2000);
             
         } else {
             Log.e(TAG, "Máximo de reintentos alcanzado");
@@ -225,9 +220,7 @@ public class SplashActivity extends AppCompatActivity {
             Log.d(TAG, "Reintentando después de error");
             // oculto: texto "Reintentando..."
             
-            splashHandler.postDelayed(() -> {
-                startUpdateVerification();
-            }, 2000);
+            splashHandler.postDelayed(this::startUpdateVerification, 2000);
             
         } else {
             Log.e(TAG, "Máximo de reintentos alcanzado por error");

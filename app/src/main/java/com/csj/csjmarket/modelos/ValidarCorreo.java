@@ -21,6 +21,14 @@ public class ValidarCorreo implements Serializable {
     }
 
     public String getPrimerNombre() {
-        return primerNombre;
+        if (primerNombre == null) {
+            return "";
+        }
+        String nombre = primerNombre.trim();
+        if (nombre.isEmpty()) {
+            return "";
+        }
+        String[] parts = nombre.split("\\s+");
+        return parts.length > 0 ? parts[0] : "";
     }
 }

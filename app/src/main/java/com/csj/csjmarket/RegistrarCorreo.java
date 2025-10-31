@@ -30,6 +30,10 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.TimeoutError;
+import com.android.volley.NoConnectionError;
+
 public class RegistrarCorreo extends AppCompatActivity {
     private ActivityRegistrarCorreoBinding binding;
     private FirebaseAuth mAuth;
@@ -274,15 +278,23 @@ public class RegistrarCorreo extends AppCompatActivity {
             if (alertDialog != null){
                 alertDialog.dismiss();
             }
-            NetworkResponse networkResponse = error.networkResponse;
-            if (networkResponse!= null){
-                String errorMessage = new String(networkResponse.data);
-                mostrarAlerta(errorMessage);
-            }
-            else{
-                mostrarAlerta(error.toString());
+            if (error instanceof TimeoutError) {
+                mostrarAlerta("Tiempo de espera agotado al validar correo.");
+            } else if (error instanceof NoConnectionError) {
+                mostrarAlerta("Sin conexión al validar correo.");
+            } else {
+                NetworkResponse networkResponse = error.networkResponse;
+                if (networkResponse!= null && networkResponse.data != null){
+                    String errorMessage = new String(networkResponse.data);
+                    mostrarAlerta(errorMessage);
+                }
+                else{
+                    mostrarAlerta(error.toString());
+                }
             }
         });
+        jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(15000, 1, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        jsonObjectRequest.setShouldCache(false);
         Volley.newRequestQueue(this).add(jsonObjectRequest);
     }
 }

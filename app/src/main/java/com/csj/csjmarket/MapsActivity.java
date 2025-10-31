@@ -20,6 +20,9 @@ import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.TimeoutError;
+import com.android.volley.NoConnectionError;
 import com.csj.csjmarket.modelos.DireccionNueva;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -275,13 +278,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 onBackPressed();
             }, error -> {
                 alertDialog.dismiss();
-                NetworkResponse networkResponse = error.networkResponse;
-                if (networkResponse!= null){
-                    String errorMessage = new String(networkResponse.data);
-                    mostrarAlerta(errorMessage);
-                }
-                else{
-                    mostrarAlerta(error.toString());
+                if (error instanceof TimeoutError) {
+                    mostrarAlerta("Tiempo de espera agotado al crear dirección.");
+                } else if (error instanceof NoConnectionError) {
+                    mostrarAlerta("Sin conexión al crear dirección.");
+                } else {
+                    NetworkResponse networkResponse = error.networkResponse;
+                    if (networkResponse!= null && networkResponse.data != null){
+                        String errorMessage = new String(networkResponse.data);
+                        mostrarAlerta(errorMessage);
+                    }
+                    else{
+                        mostrarAlerta(error.toString());
+                    }
                 }
             }){
                 @Override
@@ -291,6 +300,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     return headers;
                 }
             };
+            jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(15000, 1, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+            jsonObjectRequest.setShouldCache(false);
 
             Volley.newRequestQueue(getApplicationContext()).add(jsonObjectRequest);
         } catch (Exception e) {

@@ -18,6 +18,9 @@ import com.android.volley.Request;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.TimeoutError;
+import com.android.volley.NoConnectionError;
 import com.csj.csjmarket.databinding.ActivityEnlazarClienteBinding;
 import com.csj.csjmarket.modelos.ClienteCreacion;
 import com.csj.csjmarket.modelos.Distrito;
@@ -333,15 +336,23 @@ public class EnlazarCliente extends AppCompatActivity {
             alertDialog.dismiss();
         }, error -> {
             alertDialog.dismiss();
-            NetworkResponse networkResponse = error.networkResponse;
-            if (networkResponse!= null){
-                String errorMessage = new String(networkResponse.data);
-                mostrarAlerta(errorMessage);
-            }
-            else{
-                mostrarAlerta(error.toString());
+            if (error instanceof TimeoutError) {
+                mostrarAlerta("Tiempo de espera agotado consultando documento.");
+            } else if (error instanceof NoConnectionError) {
+                mostrarAlerta("Sin conexión al servicio de documento.");
+            } else {
+                NetworkResponse networkResponse = error.networkResponse;
+                if (networkResponse!= null && networkResponse.data != null){
+                    String errorMessage = new String(networkResponse.data);
+                    mostrarAlerta(errorMessage);
+                }
+                else{
+                    mostrarAlerta(error.toString());
+                }
             }
         });
+        jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(15000, 1, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        jsonObjectRequest.setShouldCache(false);
         Volley.newRequestQueue(this).add(jsonObjectRequest);
     }
 
@@ -368,15 +379,23 @@ public class EnlazarCliente extends AppCompatActivity {
 
         }, error -> {
             alertDialog.dismiss();
-            NetworkResponse networkResponse = error.networkResponse;
-            if (networkResponse!= null){
-                String errorMessage = new String(networkResponse.data);
-                mostrarAlerta(errorMessage);
-            }
-            else{
-                mostrarAlerta(error.toString());
+            if (error instanceof TimeoutError) {
+                mostrarAlerta("Tiempo de espera agotado al cargar provincias.");
+            } else if (error instanceof NoConnectionError) {
+                mostrarAlerta("Sin conexión al cargar provincias.");
+            } else {
+                NetworkResponse networkResponse = error.networkResponse;
+                if (networkResponse!= null && networkResponse.data != null){
+                    String errorMessage = new String(networkResponse.data);
+                    mostrarAlerta(errorMessage);
+                }
+                else{
+                    mostrarAlerta(error.toString());
+                }
             }
         });
+        jsonArrayRequest.setRetryPolicy(new DefaultRetryPolicy(15000, 1, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        jsonArrayRequest.setShouldCache(false);
         Volley.newRequestQueue(getApplicationContext()).add(jsonArrayRequest);
     }
 
@@ -401,16 +420,57 @@ public class EnlazarCliente extends AppCompatActivity {
             }
         }, error -> {
             alertDialog.dismiss();
-            NetworkResponse networkResponse = error.networkResponse;
-            if (networkResponse!= null){
-                String errorMessage = new String(networkResponse.data);
-                mostrarAlerta(errorMessage);
-            }
-            else{
-                mostrarAlerta(error.toString());
+            if (error instanceof TimeoutError) {
+                mostrarAlerta("Tiempo de espera agotado al cargar distritos.");
+            } else if (error instanceof NoConnectionError) {
+                mostrarAlerta("Sin conexión al cargar distritos.");
+            } else {
+                NetworkResponse networkResponse = error.networkResponse;
+                if (networkResponse!= null && networkResponse.data != null){
+                    String errorMessage = new String(networkResponse.data);
+                    mostrarAlerta(errorMessage);
+                }
+                else{
+                    mostrarAlerta(error.toString());
+                }
             }
         });
+        jsonArrayRequest.setRetryPolicy(new DefaultRetryPolicy(15000, 1, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        jsonArrayRequest.setShouldCache(false);
         Volley.newRequestQueue(getApplicationContext()).add(jsonArrayRequest);
+    }
+
+    private void acceder(String correo, String nombre) {
+        String url = getString(R.string.connection) + "/api/validarCorreos/nuevo/?correo=" + correo;
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, response -> {
+            Gson gson = new Gson();
+            validarCorreo = gson.fromJson(response.toString(), ValidarCorreo.class);
+            alertDialog.dismiss();
+            if (validarCorreo.getId() != 0) {
+                irMain(correo, nombre, validarCorreo);
+            } else {
+                mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.");
+            }
+        }, error -> {
+            alertDialog.dismiss();
+            if (error instanceof TimeoutError) {
+                mostrarAlerta("Tiempo de espera agotado al validar correo.");
+            } else if (error instanceof NoConnectionError) {
+                mostrarAlerta("Sin conexión al validar correo.");
+            } else {
+                NetworkResponse networkResponse = error.networkResponse;
+                if (networkResponse!= null && networkResponse.data != null){
+                    String errorMessage = new String(networkResponse.data);
+                    mostrarAlerta(errorMessage);
+                }
+                else{
+                    mostrarAlerta(error.toString());
+                }
+            }
+        });
+        jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(15000, 1, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        jsonObjectRequest.setShouldCache(false);
+        Volley.newRequestQueue(this).add(jsonObjectRequest);
     }
 
     private void crearCliente() {
@@ -424,13 +484,19 @@ public class EnlazarCliente extends AppCompatActivity {
                 acceder(correoUsuario, nombreUsuario);
             }, error -> {
                 alertDialog.dismiss();
-                NetworkResponse networkResponse = error.networkResponse;
-                if (networkResponse!= null){
-                    String errorMessage = new String(networkResponse.data);
-                    mostrarAlerta(errorMessage);
-                }
-                else{
-                    mostrarAlerta(error.toString());
+                if (error instanceof TimeoutError) {
+                    mostrarAlerta("Tiempo de espera agotado al crear cliente.");
+                } else if (error instanceof NoConnectionError) {
+                    mostrarAlerta("Sin conexión al crear cliente.");
+                } else {
+                    NetworkResponse networkResponse = error.networkResponse;
+                    if (networkResponse!= null && networkResponse.data != null){
+                        String errorMessage = new String(networkResponse.data);
+                        mostrarAlerta(errorMessage);
+                    }
+                    else{
+                        mostrarAlerta(error.toString());
+                    }
                 }
             }){
                 @Override
@@ -441,38 +507,13 @@ public class EnlazarCliente extends AppCompatActivity {
                 }
             };
 
+            jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(15000, 1, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+            jsonObjectRequest.setShouldCache(false);
             Volley.newRequestQueue(getApplicationContext()).add(jsonObjectRequest);
         } catch (Exception e) {
             alertDialog.dismiss();
             mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.\nDetalle: " + e.getMessage());
         }
-    }
-
-    private void acceder(String correo, String nombre) {
-        String url = getString(R.string.connection) + "/api/validarCorreos/nuevo/?correo=" + correo;
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, response -> {
-            Gson gson = new Gson();
-//            Type validartListType = new TypeToken<ValidarCorreo>() {
-//            }.getType();
-            validarCorreo = gson.fromJson(response.toString(), ValidarCorreo.class);
-            alertDialog.dismiss();
-            if (validarCorreo.getId() != 0) {
-                irMain(correo, nombre, validarCorreo);
-            } else {
-                mostrarAlerta("Algo salió mal, por favor inténtelo nuevamente.");
-            }
-        }, error -> {
-            alertDialog.dismiss();
-            NetworkResponse networkResponse = error.networkResponse;
-            if (networkResponse!= null){
-                String errorMessage = new String(networkResponse.data);
-                mostrarAlerta(errorMessage);
-            }
-            else{
-                mostrarAlerta(error.toString());
-            }
-        });
-        Volley.newRequestQueue(this).add(jsonObjectRequest);
     }
 
     private void irMain(String correo, String nombre, ValidarCorreo validarCorreo) {

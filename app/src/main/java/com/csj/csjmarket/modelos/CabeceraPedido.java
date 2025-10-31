@@ -26,4 +26,8 @@ public class CabeceraPedido {
     public void setTotalPeso(double totalPeso) {
         this.totalPeso = totalPeso;
     }
+
+    public int getIdDireccionEntrega() {
+        return idDireccionEntrega;
+    }
 }

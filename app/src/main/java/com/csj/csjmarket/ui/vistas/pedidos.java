@@ -15,6 +15,9 @@ import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.TimeoutError;
+import com.android.volley.NoConnectionError;
 import com.csj.csjmarket.R;
 import com.csj.csjmarket.databinding.FragmentInicioBinding;
 import com.csj.csjmarket.databinding.FragmentPedidosBinding;
@@ -71,15 +74,23 @@ public class pedidos extends Fragment {
             alertDialog.dismiss();
         }, error -> {
             alertDialog.dismiss();
-            NetworkResponse networkResponse = error.networkResponse;
-            if (networkResponse!= null){
-                String errorMessage = new String(networkResponse.data);
-                mostrarAlerta(errorMessage);
-            }
-            else{
-                mostrarAlerta(error.toString());
+            if (error instanceof TimeoutError) {
+                mostrarAlerta("Tiempo de espera agotado al cargar pedidos.");
+            } else if (error instanceof NoConnectionError) {
+                mostrarAlerta("Sin conexión al cargar pedidos.");
+            } else {
+                NetworkResponse networkResponse = error.networkResponse;
+                if (networkResponse!= null && networkResponse.data != null){
+                    String errorMessage = new String(networkResponse.data);
+                    mostrarAlerta(errorMessage);
+                }
+                else{
+                    mostrarAlerta(error.toString());
+                }
             }
         });
+        jsonArrayRequest.setRetryPolicy(new DefaultRetryPolicy(15000, 1, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        jsonArrayRequest.setShouldCache(false);
         Volley.newRequestQueue(context).add(jsonArrayRequest);
     }
 

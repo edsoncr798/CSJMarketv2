@@ -1,6 +1,7 @@
 package com.csj.csjmarket.modelos;
 
 import java.io.Serializable;
+import com.google.gson.annotations.SerializedName;
 
 public class Producto implements Serializable {
 
@@ -17,8 +18,21 @@ public class Producto implements Serializable {
     private Double peso;
     private String proveedor;
     private int idProveedor;
+    @SerializedName(value = "Observacion", alternate = {"observacion"})
+    private String observacion;
 
+    @SerializedName(value = "PrecioUnidadAntes", alternate = {"precioUnidadAntes"})
+    private Double precioUnidadAntes;
     //private String imagen;
+
+    @SerializedName(value = "TieneBonificacion", alternate = {"tieneBonificacion"})
+    private boolean tieneBonificacion;
+
+    @SerializedName(value = "stockFisico", alternate = {"StockFisico"})
+    private int stockFisico;
+
+    @SerializedName(value = "stockPorEntregar", alternate = {"StockPorEntregar"})
+    private int stockPorEntregar;
 
     public int getId() {
         return id;
@@ -70,5 +84,38 @@ public class Producto implements Serializable {
 
     public int getIdProveedor() {
         return idProveedor;
+    }
+
+    // nuevos getters
+    public boolean isTieneBonificacion() {
+        return tieneBonificacion;
+    }
+
+    public int getStockFisico() {
+        return stockFisico;
+    }
+
+    public int getStockPorEntregar() {
+        return stockPorEntregar;
+    }
+
+    public int getStockDisponible() {
+        return Math.max(stockFisico - stockPorEntregar, 0);
+    }
+
+    public String getObservacion() {
+        return observacion;
+    }
+
+    public void setObservacion(String observacion) {
+        this.observacion = observacion;
+    }
+
+    public Double getPrecioUnidadAntes() {
+        return precioUnidadAntes;
+    }
+
+    public void setPrecioUnidadAntes(Double precioUnidadAntes) {
+        this.precioUnidadAntes = precioUnidadAntes;
     }
 }

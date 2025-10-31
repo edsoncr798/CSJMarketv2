@@ -7,6 +7,8 @@ public class RespuestaPedido {
     private int IdCpInventario;
     private String NumCp;
     private String Fecha;
+    private String RequestId;
+    private String ImagenProducto;
 
     public int getIdCp() {
         return IdCp;
@@ -22,5 +24,13 @@ public class RespuestaPedido {
 
     public String getFecha() {
         return Fecha;
+    }
+
+    public String getRequestId() {
+        return RequestId;
+    }
+
+    public String getImagenProducto() {
+        return ImagenProducto;
     }
 }

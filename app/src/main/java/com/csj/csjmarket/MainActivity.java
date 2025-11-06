@@ -33,7 +33,7 @@ import java.net.URLEncoder;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final boolean DEBUG_MODE = false;
+    private static final boolean DEBUG_MODE = true;
 
     private AppBarConfiguration mAppBarConfiguration;
 

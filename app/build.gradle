@@ -53,8 +53,8 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.9.4'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4'
-    implementation 'androidx.navigation:navigation-fragment:2.9.5'
-    implementation 'androidx.navigation:navigation-ui:2.9.5'
+    implementation 'androidx.navigation:navigation-fragment:2.9.6'
+    implementation 'androidx.navigation:navigation-ui:2.9.6'
     implementation 'androidx.annotation:annotation:1.9.1'
     implementation 'com.google.firebase:firebase-auth-ktx:23.2.1'
     implementation 'com.google.firebase:firebase-messaging:25.0.1'
@@ -66,7 +66,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
     implementation 'com.android.volley:volley:1.2.1'
     implementation 'com.google.code.gson:gson:2.13.2'
-    implementation 'com.airbnb.android:lottie:6.6.10'
+    implementation 'com.airbnb.android:lottie:6.7.1'
     implementation 'com.github.bumptech.glide:glide:5.0.5'
     annotationProcessor 'com.github.bumptech.glide:compiler:5.0.5'
     // Circle Indicator (To fix the xml preview "Missing classes" error)
@@ -75,7 +75,7 @@ dependencies {
     implementation 'org.imaginativeworld.whynotimagecarousel:whynotimagecarousel:2.1.1'
 
     // Import the BoM for the Firebase platform
-    implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
 
     implementation "androidx.credentials:credentials:1.5.0"
     implementation "androidx.credentials:credentials-play-services-auth:1.5.0"
@@ -93,10 +93,10 @@ dependencies {
     implementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '10.5'
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.70'
     // Google Tink for Ed25519/X25519 used by nimbus-jose-jwt
-    implementation 'com.google.crypto.tink:tink-android:1.18.0'
+    implementation 'com.google.crypto.tink:tink-android:1.19.0'
     implementation 'com.squareup.retrofit2:retrofit:3.0.0'
     implementation 'com.squareup.retrofit2:converter-gson:3.0.0'
-    implementation 'com.squareup.okhttp3:logging-interceptor:5.2.1'
+    implementation 'com.squareup.okhttp3:logging-interceptor:5.3.0'
 
     implementation files('libs/visanet-lib-lite-release-2.2.1.aar')
 

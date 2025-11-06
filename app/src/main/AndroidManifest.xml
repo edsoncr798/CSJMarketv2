@@ -19,7 +19,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.CsjMarket"
         android:usesCleartextTraffic="false"
-        android:pageSizeCompat="enabled"
         android:name=".CsjMarketApp">
         <activity
             android:name=".RecuperarCorreo"

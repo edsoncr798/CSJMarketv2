@@ -27,7 +27,7 @@ public class SplashActivity extends AppCompatActivity {
     private static final int MAX_UPDATE_RETRIES = 3;
     private static final long SPLASH_DELAY_MS = 2000; // 2 segundos mínimo de splash
     // MODO DESARROLLO: poner en false antes de subir a producción
-    private static final boolean DEBUG_MODE = false;
+    private static final boolean DEBUG_MODE = true;
 
     private AppUpdateManager appUpdateManager;
     private ActivityResultLauncher<IntentSenderRequest> updateLauncher;

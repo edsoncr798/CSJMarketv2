@@ -193,13 +193,15 @@ public class inicio extends Fragment implements itemFiltroProveedorAdapter.OnIte
     private void filtrarXCategoria() {
         if (filtroProveedoresSel.isEmpty()) {
             productosFiltrado = productos;
-            if (!binding.txtBuscarProducto.getText().isEmpty()) {
-                String textoBusqueda = binding.txtBuscarProducto.getText().toString().toUpperCase();
-                productosFiltrado = (ArrayList<Producto>) productosFiltrado
-                        .stream()
-                        .filter(x -> x.getNombre().toUpperCase().contains(textoBusqueda)
-                                || (x.getCodigo() != null && x.getCodigo().toUpperCase().contains(textoBusqueda)))
-                        .collect(Collectors.toList());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                if (!binding.txtBuscarProducto.getText().isEmpty()) {
+                    String textoBusqueda = binding.txtBuscarProducto.getText().toString().toUpperCase();
+                    productosFiltrado = (ArrayList<Producto>) productosFiltrado
+                            .stream()
+                            .filter(x -> x.getNombre().toUpperCase().contains(textoBusqueda)
+                                    || (x.getCodigo() != null && x.getCodigo().toUpperCase().contains(textoBusqueda)))
+                            .collect(Collectors.toList());
+                }
             }
 
             // Usar el adapter de campo, no crear uno nuevo
@@ -219,13 +221,15 @@ public class inicio extends Fragment implements itemFiltroProveedorAdapter.OnIte
                 productosFiltrado.addAll(productosFiltradoProv);
             }
 
-            if (!binding.txtBuscarProducto.getText().isEmpty()) {
-                String textoBusqueda = binding.txtBuscarProducto.getText().toString().toUpperCase();
-                productosFiltrado = (ArrayList<Producto>) productosFiltrado
-                        .stream()
-                        .filter(x -> x.getNombre().toUpperCase().contains(textoBusqueda)
-                                || (x.getCodigo() != null && x.getCodigo().toUpperCase().contains(textoBusqueda)))
-                        .collect(Collectors.toList());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                if (!binding.txtBuscarProducto.getText().isEmpty()) {
+                    String textoBusqueda = binding.txtBuscarProducto.getText().toString().toUpperCase();
+                    productosFiltrado = (ArrayList<Producto>) productosFiltrado
+                            .stream()
+                            .filter(x -> x.getNombre().toUpperCase().contains(textoBusqueda)
+                                    || (x.getCodigo() != null && x.getCodigo().toUpperCase().contains(textoBusqueda)))
+                            .collect(Collectors.toList());
+                }
             }
 
             // Usar el adapter de campo, no crear uno nuevo
@@ -262,7 +266,7 @@ public class inicio extends Fragment implements itemFiltroProveedorAdapter.OnIte
             }
         } catch (Exception ignore) {}
 
-        String url = getString(R.string.connection) + "/api/productos/v2/listar";
+        String url = getString(R.string.connection) + "/api/productos";
 
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, responseStr -> {
             try { if (alertDialog != null) alertDialog.dismiss(); } catch (Exception ignore) {}
@@ -296,7 +300,7 @@ public class inicio extends Fragment implements itemFiltroProveedorAdapter.OnIte
                 SharedPreferences spStock = context.getSharedPreferences("stockInfo", MODE_PRIVATE);
                 Map<Integer, StockInfo> map = new HashMap<>();
                 String mapStr = spStock.getString("stockMap", "");
-                if (mapStr != null && !mapStr.isEmpty()) {
+                if (!mapStr.isEmpty()) {
                     Type stockType = new TypeToken<Map<Integer, StockInfo>>() {}.getType();
                     map = new Gson().fromJson(mapStr, stockType);
                 }

@@ -15,6 +15,7 @@ import com.android.volley.NoConnectionError;
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.TimeoutError;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.csj.csjmarket.databinding.ActivityVerProductoBinding;
@@ -24,12 +25,9 @@ import com.csj.csjmarket.ui.Ayudas;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import org.json.JSONObject;
-
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import java.text.DecimalFormat;
 
 import android.content.res.ColorStateList;
 import android.view.animation.Animation;
@@ -40,9 +38,8 @@ public class VerProducto extends AppCompatActivity {
     private Producto producto;
     private Integer cantidad = 1;
     private SharedPreferences sharedPreferences;
-    private Gson gson = new Gson();
+    private final Gson gson = new Gson();
     private ArrayList<MiCarrito> miCarrito;
-    private int stockFisico = 0;
     private int stockDisponibleReal = 0;
 
 // Lógica de bonificación dinámica
@@ -59,6 +56,16 @@ private int ultimoTotalRegalos = 0; // para animación al aumentar obsequios
 private String bonusCodigoObsequio = "";
 private String bonusImagenUrlObsequio = "";
 
+private boolean descuentoActivo = false;
+private double descuentoPorcentaje = 0.0;
+private double descuentoPrecioAntes = 0.0;
+private double descuentoPrecioActual = 0.0;
+private String descuentoMensaje = "";
+private String descuentoFechaInicio = "";
+private String descuentoFechaFin = "";
+private org.json.JSONArray descuentosArrayCompleto = null; // Para almacenar todos los descuentos
+private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,7 +80,7 @@ private String bonusImagenUrlObsequio = "";
         miCarrito = gson.fromJson(sharedPreferences.getString("carrito", ""), typeS);
 
         producto = (Producto) getIntent().getSerializableExtra("producto");
-        stockFisico = producto != null ? producto.getStockDisponible() : 0;
+        int stockFisico = producto != null ? producto.getStockDisponible() : 0;
         // Calcular stock disponible real restando lo reservado en el carrito
         int reservadoEnCarrito = 0;
         try {
@@ -122,15 +129,31 @@ private String bonusImagenUrlObsequio = "";
         // Mostrar código del producto debajo del stock
         binding.vpTxtCodigoProducto.setText("Código: " + producto.getCodigo());
 
-        // Solicitar bonificación: mostrar loader solo si el producto indica bonificación
+        // Solicitar bonificación: solo si el producto indica bonificación
         if (producto != null) {
-            boolean mostrarLoader = false;
+            boolean tieneBonificacionFlag = false;
             try {
-                mostrarLoader = producto.isTieneBonificacion();
+                tieneBonificacionFlag = producto.isTieneBonificacion();
             } catch (Exception ignore) {}
-            cargarBonificacion(producto.getId(), mostrarLoader);
+            if (tieneBonificacionFlag) {
+                cargarBonificacion(producto.getId());
+            } else {
+                binding.vpBonusContainer.setVisibility(View.GONE);
+                binding.vpBonusLoader.setVisibility(View.GONE);
+            }
+            boolean mostrarLoaderDesc = false;
+            try {
+                mostrarLoaderDesc = producto.isTieneDescuento();
+            } catch (Exception ignore) {}
+            if (mostrarLoaderDesc) {
+                cargarDescuento(producto.getId());
+            } else {
+                binding.vpDiscountContainer.setVisibility(View.GONE);
+                binding.vpDiscountLoader.setVisibility(View.GONE);
+            }
         } else {
             binding.vpBonusContainer.setVisibility(View.GONE);
+            binding.vpDiscountContainer.setVisibility(View.GONE);
         }
 
         binding.vpBtnAumentar.setOnClickListener(view -> {
@@ -148,6 +171,7 @@ private String bonusImagenUrlObsequio = "";
             }
             verificarBotonIncremento();
             actualizarBonificacionDinamica();
+            actualizarDescuentoDinamico();
         });
 
         binding.vpBtnDisminuir.setOnClickListener(view -> {
@@ -163,6 +187,7 @@ private String bonusImagenUrlObsequio = "";
             }
             verificarBotonIncremento();
             actualizarBonificacionDinamica();
+            actualizarDescuentoDinamico();
         });
 
         binding.vpTxtCantidad.addTextChangedListener(new TextWatcher() {
@@ -196,6 +221,7 @@ private String bonusImagenUrlObsequio = "";
                     mostrarMaximoStock();
                 }
                 actualizarBonificacionDinamica();
+                actualizarDescuentoDinamico();
             }
         });
 
@@ -227,6 +253,8 @@ private String bonusImagenUrlObsequio = "";
                 miCarritoItem.setPeso(producto.getPeso());
                 miCarritoItem.setPesoTotal(producto.getPeso() * qty);
                 miCarritoItem.setTieneBonificacion(producto.isTieneBonificacion());
+                try { miCarritoItem.setTieneDescuento(producto.isTieneDescuento()); } catch (Exception ignore) {}
+                try { miCarritoItem.setIdDefinicionDescuento(descuentoIdSeleccionado); } catch (Exception ignore) {}
                 // Guardar factor del producto para cálculos en carrito
                 try { miCarritoItem.setFactor(Math.max(producto.getFactor(), 1)); } catch (Exception ignore) { miCarritoItem.setFactor(1); }
             // Persistir reglas de bonificación en el producto principal (para futuras sincronizaciones)
@@ -323,15 +351,10 @@ private String bonusImagenUrlObsequio = "";
         });
     }
 
-    private void cargarBonificacion(int idProducto, boolean mostrarLoaderInicial) {
+    private void cargarBonificacion(int idProducto) {
         // Mostrar u ocultar loader según flag
-        if (mostrarLoaderInicial) {
-            binding.vpBonusContainer.setVisibility(View.VISIBLE);
-            binding.vpBonusLoader.setVisibility(View.VISIBLE);
-        } else {
-            binding.vpBonusContainer.setVisibility(View.GONE);
-            binding.vpBonusLoader.setVisibility(View.GONE);
-        }
+        binding.vpBonusContainer.setVisibility(View.VISIBLE);
+        binding.vpBonusLoader.setVisibility(View.VISIBLE);
         // Reset visibilidades
         binding.vpBonusProgress.setVisibility(View.GONE);
         binding.vpBonusTitle.setVisibility(View.GONE);
@@ -365,25 +388,7 @@ private String bonusImagenUrlObsequio = "";
                 if (!tieneBonificacion) {
                     bonusActivo = false;
                     binding.vpBonusLoader.setVisibility(View.GONE);
-                    binding.vpBonusContainer.setVisibility(View.VISIBLE);
-                    binding.vpBonusTitle.setVisibility(View.VISIBLE);
-                    binding.vpBonusMessage.setVisibility(View.VISIBLE);
-                    binding.vpBonusRequirement.setVisibility(View.VISIBLE);
-                    binding.vpBonusGift.setVisibility(View.GONE);
-                    binding.vpBonusDynamicCount.setVisibility(View.GONE);
-                    binding.vpBonusStock.setVisibility(View.GONE);
-                    binding.vpBonusValidity.setVisibility(View.GONE);
-                    binding.vpBonusNextHint.setVisibility(View.GONE);
-                    binding.vpBonusSavings.setVisibility(View.GONE);
-                    binding.vpBonusProgress.setVisibility(View.GONE);
-
-                    binding.vpBonusMessage.setText(mensajePromocional);
-                    binding.vpBonusRequirement.setText(!tipoCondicion.isEmpty() ? tipoCondicion : "Este producto no tiene bonificaciones disponibles actualmente");
-                    binding.vpBonusValidity.setText("");
-                    binding.vpBonusDynamicCount.setText("");
-                    binding.vpBonusNextHint.setText("");
-                    binding.vpBonusSavings.setText("");
-                    binding.vpBonusProgress.setProgress(0);
+                    binding.vpBonusContainer.setVisibility(View.GONE);
                     return;
                 }
 
@@ -513,6 +518,381 @@ private String bonusImagenUrlObsequio = "";
         Volley.newRequestQueue(this).add(req);
     }
 
+    private void cargarDescuento(int idProducto) {
+        binding.vpDiscountContainer.setVisibility(View.VISIBLE);
+        binding.vpDiscountLoader.setVisibility(View.VISIBLE);
+        binding.vpDiscountTitle.setVisibility(View.VISIBLE); // Siempre mostrar título cuando hay descuento
+        binding.vpDiscountMessage.setVisibility(View.GONE);
+        binding.vpDiscountDetail.setVisibility(View.GONE);
+        binding.vpDiscountSavings.setVisibility(View.GONE);
+        binding.vpDiscountValidity.setVisibility(View.GONE);
+
+        String url = getString(R.string.connection) + "/api/productos/descuento/" + idProducto;
+        StringRequest req = new StringRequest(Request.Method.GET, url, respStr -> {
+            try {
+                Object parsed = new org.json.JSONTokener(respStr).nextValue();
+                org.json.JSONArray descuentosArray;
+                
+                if (parsed instanceof org.json.JSONArray arr) {
+                    if (arr.length() == 0) {
+                        binding.vpDiscountLoader.setVisibility(View.GONE);
+                        // No hay descuento activo pero mostrar mensaje genérico
+                        descuentoActivo = false;
+                        // El título ya está visible desde el inicio
+                        binding.vpDiscountMessage.setVisibility(View.VISIBLE);
+                        binding.vpDiscountMessage.setText("Descuento disponible");
+                        binding.vpDiscountDetail.setVisibility(View.GONE);
+                        binding.vpDiscountSavings.setVisibility(View.GONE);
+                        binding.vpDiscountValidity.setVisibility(View.GONE);
+                        return;
+                    }
+                    descuentosArray = arr;
+                } else {
+                    // Si es un solo objeto, convertirlo a array con un solo elemento
+                    descuentosArray = new org.json.JSONArray();
+                    descuentosArray.put(parsed);
+                }
+
+                // Procesar múltiples descuentos
+                StringBuilder mensajesBuilder = new StringBuilder();
+                StringBuilder detallesBuilder = new StringBuilder();
+                String fechaInicio = "";
+                String fechaFin = "";
+                double maxPorcentaje = 0.0;
+                boolean hayDescuentosValidos = false;
+                java.text.DecimalFormat dfPorcentaje = new java.text.DecimalFormat("#0.#"); // Para formatear porcentajes con decimales
+                
+                // Guardar array completo para cálculos dinámicos
+                descuentosArrayCompleto = descuentosArray;
+
+                for (int i = 0; i < descuentosArray.length(); i++) {
+                    org.json.JSONObject descuento = descuentosArray.getJSONObject(i);
+                    
+                    String mensaje = descuento.optString("MensajePromocional", descuento.optString("mensajePromocional", descuento.optString("mensaje", ""))).trim();
+                    double porcentaje = descuento.optDouble("PorcentajeDescuento", descuento.optDouble("porcentajeDescuento", descuento.optDouble("porcentaje", 0.0)));
+                    String tipoCondicion = descuento.optString("tipoCondicion", "").trim();
+                    String valorDesde = descuento.optString("valorDesde", "").trim();
+                    String valorHasta = descuento.optString("valorHasta", "").trim();
+                    
+                    // Actualizar fechas (tomar la más amplia)
+                    String fi = descuento.optString("FechaInicio", "").trim();
+                    String ff = descuento.optString("FechaFin", "").trim();
+                    if (!fi.isEmpty() && fechaInicio.isEmpty()) fechaInicio = fi;
+                    if (!ff.isEmpty() && fechaFin.isEmpty()) fechaFin = ff;
+                    
+                    if (porcentaje > 0) {
+                        hayDescuentosValidos = true;
+                        if (maxPorcentaje < porcentaje) maxPorcentaje = porcentaje;
+                        
+                        // Agregar mensaje
+                        if (mensaje.isEmpty()) {
+                            mensaje = "Descuento del " + porcentaje + "%";
+                        }
+                        if (mensajesBuilder.length() > 0) mensajesBuilder.append("\n");
+                        mensajesBuilder.append("• ").append(mensaje);
+                        
+                        // Agregar detalles del rango según el tipo de condición
+                        if (tipoCondicion.equals("ValorVenta")) {
+                            if (!valorDesde.isEmpty() && !valorHasta.isEmpty() && !valorHasta.equals("null")) {
+                                detallesBuilder.append("• Compra S/ ").append(valorDesde.trim()).append(" - S/ ").append(valorHasta.trim()).append(": ").append(dfPorcentaje.format(porcentaje)).append("% descuento");
+                            } else if (!valorDesde.isEmpty() && (valorHasta.isEmpty() || valorHasta.equals("null"))) {
+                                detallesBuilder.append("• Compra desde S/ ").append(valorDesde.trim()).append(": ").append(dfPorcentaje.format(porcentaje)).append("% descuento");
+                            } else {
+                                detallesBuilder.append("• ").append(dfPorcentaje.format(porcentaje)).append("% descuento");
+                            }
+                        } else if (tipoCondicion.equals("CantidadBase")) {
+                            if (!valorDesde.isEmpty() && !valorHasta.isEmpty() && !valorHasta.equals("null")) {
+                                detallesBuilder.append("• Compra ").append(valorDesde.trim()).append(" - ").append(valorHasta.trim()).append(" unidades: ").append(dfPorcentaje.format(porcentaje)).append("% descuento");
+                            } else if (!valorDesde.isEmpty() && (valorHasta.isEmpty() || valorHasta.equals("null"))) {
+                                detallesBuilder.append("• Compra desde ").append(valorDesde.trim()).append(" unidades: ").append(dfPorcentaje.format(porcentaje)).append("% descuento");
+                            } else {
+                                detallesBuilder.append("• ").append(dfPorcentaje.format(porcentaje)).append("% descuento");
+                            }
+                        } else {
+                            detallesBuilder.append("• ").append(dfPorcentaje.format(porcentaje)).append("% descuento");
+                        }
+                        if (i < descuentosArray.length() - 1) detallesBuilder.append("\n");
+                    }
+                }
+
+                if (!hayDescuentosValidos) {
+                    binding.vpDiscountLoader.setVisibility(View.GONE);
+                    descuentoActivo = false;
+                    binding.vpDiscountMessage.setVisibility(View.VISIBLE);
+                    binding.vpDiscountMessage.setText("Descuento disponible");
+                    binding.vpDiscountDetail.setVisibility(View.GONE);
+                    binding.vpDiscountSavings.setVisibility(View.GONE);
+                    binding.vpDiscountValidity.setVisibility(View.GONE);
+                    return;
+                }
+                double precioAntes = producto != null && producto.getPrecioUnidadAntes() != null ? producto.getPrecioUnidadAntes() : 0.0;
+                double precioActual = producto != null && producto.getPrecioUnidadBase() != null ? producto.getPrecioUnidadBase() : 0.0;
+
+                descuentoActivo = true;
+                descuentoMensaje = mensajesBuilder.length() > 0 ? mensajesBuilder.toString() : "Descuento disponible";
+                descuentoPrecioAntes = precioAntes > 0.0 ? precioAntes : (producto != null ? (producto.getPrecioUnidadAntes() != null ? producto.getPrecioUnidadAntes() : 0.0) : 0.0);
+                descuentoPrecioActual = precioActual > 0.0 ? precioActual : (producto != null ? (producto.getPrecioUnidadBase() != null ? producto.getPrecioUnidadBase() : 0.0) : 0.0);
+                descuentoPorcentaje = maxPorcentaje;
+                descuentoFechaInicio = fechaInicio;
+                descuentoFechaFin = fechaFin;
+
+                binding.vpDiscountLoader.setVisibility(View.GONE);
+                binding.vpDiscountContainer.setVisibility(View.VISIBLE);
+                binding.vpDiscountTitle.setVisibility(View.VISIBLE);
+                binding.vpDiscountMessage.setVisibility(View.VISIBLE);
+                binding.vpDiscountDetail.setVisibility(View.VISIBLE);
+                binding.vpDiscountSavings.setVisibility(View.VISIBLE);
+                binding.vpDiscountValidity.setVisibility(View.VISIBLE);
+
+                // Mostrar mensajes de descuento (reglas completas)
+                binding.vpDiscountMessage.setText(descuentoMensaje);
+                
+                // Mostrar detalles de rangos
+                if (detallesBuilder.length() > 0) {
+                    binding.vpDiscountDetail.setVisibility(View.VISIBLE);
+                    binding.vpDiscountDetail.setText(detallesBuilder.toString());
+                } else {
+                    binding.vpDiscountDetail.setVisibility(View.GONE);
+                }
+
+                // Actualizar la interfaz visual con los valores actuales
+                actualizarInterfazVisualDescuento();
+
+                java.util.Locale localeEs = new java.util.Locale("es", "ES");
+                String inicioFmt = "";
+                String finFmt = "";
+                String[] patrones = new String[]{"yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd"};
+                if (!descuentoFechaInicio.isEmpty()) {
+                    for (String p : patrones) {
+                        try {
+                            java.text.SimpleDateFormat in = new java.text.SimpleDateFormat(p, java.util.Locale.US);
+                            in.setLenient(true);
+                            java.util.Date d = in.parse(descuentoFechaInicio);
+                            java.text.SimpleDateFormat out = new java.text.SimpleDateFormat("d 'de' MMMM 'de' yyyy", localeEs);
+                            inicioFmt = out.format(d);
+                            break;
+                        } catch (Exception ignore) {}
+                    }
+                }
+                if (!descuentoFechaFin.isEmpty()) {
+                    for (String p : patrones) {
+                        try {
+                            java.text.SimpleDateFormat in = new java.text.SimpleDateFormat(p, java.util.Locale.US);
+                            in.setLenient(true);
+                            java.util.Date d = in.parse(descuentoFechaFin);
+                            java.text.SimpleDateFormat out = new java.text.SimpleDateFormat("d 'de' MMMM 'de' yyyy", localeEs);
+                            finFmt = out.format(d);
+                            break;
+                        } catch (Exception ignore) {}
+                    }
+                }
+                String vigenciaText = "";
+                if (!inicioFmt.isEmpty() && !finFmt.isEmpty()) {
+                    vigenciaText = "Válido del " + inicioFmt + " al " + finFmt;
+                } else if (!inicioFmt.isEmpty()) {
+                    vigenciaText = "Válido desde " + inicioFmt;
+                } else if (!finFmt.isEmpty()) {
+                    vigenciaText = "Válido hasta " + finFmt;
+                }
+                if (vigenciaText.isEmpty()) {
+                    binding.vpDiscountValidity.setVisibility(View.GONE);
+                } else {
+                    binding.vpDiscountValidity.setVisibility(View.VISIBLE);
+                    binding.vpDiscountValidity.setText(vigenciaText);
+                }
+
+                actualizarDescuentoDinamico();
+            } catch (Exception e) {
+                // Error en el procesamiento, no hay descuento activo
+                descuentoActivo = false;
+                binding.vpDiscountLoader.setVisibility(View.GONE);
+                // El título ya está visible desde el inicio
+                binding.vpDiscountMessage.setVisibility(View.VISIBLE);
+                binding.vpDiscountMessage.setText("Descuento disponible");
+                binding.vpDiscountDetail.setVisibility(View.GONE);
+                binding.vpDiscountSavings.setVisibility(View.GONE);
+                binding.vpDiscountValidity.setVisibility(View.GONE);
+            }
+        }, error -> {
+            binding.vpDiscountLoader.setVisibility(View.GONE);
+            // Error de red, no hay descuento activo
+            descuentoActivo = false;
+            // Mostrar contenedor con mensaje genérico si hubo error pero el producto tiene descuento
+            try {
+                if (producto != null && producto.isTieneDescuento()) {
+                    binding.vpDiscountContainer.setVisibility(View.VISIBLE);
+                    // El título ya está visible desde el inicio
+                    binding.vpDiscountMessage.setVisibility(View.VISIBLE);
+                    binding.vpDiscountDetail.setVisibility(View.GONE);
+                    binding.vpDiscountSavings.setVisibility(View.GONE);
+                    binding.vpDiscountValidity.setVisibility(View.GONE);
+                    binding.vpDiscountMessage.setText("Descuento disponible");
+                } else {
+                    binding.vpDiscountContainer.setVisibility(View.GONE);
+                }
+            } catch (Exception ignore) {
+                binding.vpDiscountContainer.setVisibility(View.GONE);
+            }
+        });
+        req.setRetryPolicy(new DefaultRetryPolicy(9000, 2, 1));
+        req.setShouldCache(false);
+        Volley.newRequestQueue(this).add(req);
+    }
+
+    private void actualizarDescuentoDinamico() {
+        actualizarInterfazVisualDescuento();
+    }
+    
+    private void actualizarInterfazVisualDescuento() {
+        if (!descuentoActivo || descuentosArrayCompleto == null) {
+            // Ocultar elementos visuales
+            binding.vpDiscountPercentLabel.setVisibility(View.GONE);
+            binding.vpDiscountSubtotal.setVisibility(View.GONE);
+            binding.vpDiscountTotal.setVisibility(View.GONE);
+            binding.vpDiscountProgress.setVisibility(View.GONE);
+            binding.vpDiscountSavings.setVisibility(View.GONE);
+            binding.vpDiscountConditionType.setVisibility(View.GONE);
+            return;
+        }
+        
+        int qty = cantidad != null ? cantidad : 0;
+        double valorVenta = descuentoPrecioActual * qty; // Valor total de la venta
+        double porcentajeAplicado = 0;
+        String rangoAplicado = "";
+        String tipoCondicionAplicado = "";
+        double ahorroValorEscalonado = 0.0;
+        boolean usoEscalonadoValor = false;
+        
+        try {
+            java.util.List<org.json.JSONObject> reglasValor = new java.util.ArrayList<>();
+            for (int i = 0; i < descuentosArrayCompleto.length(); i++) {
+                org.json.JSONObject d = descuentosArrayCompleto.getJSONObject(i);
+                String t = d.optString("tipoCondicion", "").trim();
+                if (t.equals("ValorVenta")) reglasValor.add(d);
+            }
+            java.util.Collections.sort(reglasValor, (a, b) -> {
+                double ad = 0, bd = 0;
+                try { ad = Double.parseDouble(a.optString("valorDesde", "0").trim()); } catch (Exception ignore) {}
+                try { bd = Double.parseDouble(b.optString("valorDesde", "0").trim()); } catch (Exception ignore) {}
+                return Double.compare(ad, bd);
+            });
+            double porcentajeSeleccionado = 0.0;
+            double desdeSel = 0.0;
+            double hastaSel = Double.MAX_VALUE;
+            for (org.json.JSONObject descuento : reglasValor) {
+                double porcentaje = descuento.optDouble("PorcentajeDescuento", descuento.optDouble("porcentajeDescuento", 0.0));
+                String valorDesdeStr = descuento.optString("valorDesde", "").trim();
+                String valorHastaStr = descuento.optString("valorHasta", "").trim();
+                Integer idRegla = null;
+                try { idRegla = descuento.has("IDDescuento") ? descuento.optInt("IDDescuento") : (descuento.has("idDescuento") ? descuento.optInt("idDescuento") : null); } catch(Exception ignore) {}
+                double valorDesde = 0;
+                double valorHasta = Double.MAX_VALUE;
+                if (!valorDesdeStr.isEmpty()) { try { valorDesde = Double.parseDouble(valorDesdeStr.trim()); } catch (Exception ignore) { valorDesde = 0; } }
+                if (!valorHastaStr.isEmpty() && !valorHastaStr.equals("null")) { try { valorHasta = Double.parseDouble(valorHastaStr.trim()); } catch (Exception ignore) { valorHasta = Double.MAX_VALUE; } }
+                boolean contiene = (valorVenta >= valorDesde && valorVenta <= valorHasta);
+                boolean geSinTope = (valorHasta == Double.MAX_VALUE && valorVenta >= valorDesde);
+                if (contiene || geSinTope) {
+                    porcentajeSeleccionado = porcentaje;
+                    desdeSel = valorDesde;
+                    hastaSel = valorHasta;
+                    descuentoIdSeleccionado = idRegla;
+                    break;
+                }
+            }
+            if (porcentajeSeleccionado > 0.0) {
+                porcentajeAplicado = porcentajeSeleccionado;
+                tipoCondicionAplicado = "Por valor";
+                if (hastaSel == Double.MAX_VALUE) {
+                    rangoAplicado = "Desde S/ " + new java.text.DecimalFormat("#0").format(desdeSel);
+                } else {
+                    rangoAplicado = "S/ " + new java.text.DecimalFormat("#0").format(desdeSel) + " - S/ " + new java.text.DecimalFormat("#0").format(hastaSel);
+                }
+            }
+            for (int i = 0; i < descuentosArrayCompleto.length(); i++) {
+                org.json.JSONObject descuento = descuentosArrayCompleto.getJSONObject(i);
+                double porcentaje = descuento.optDouble("PorcentajeDescuento", descuento.optDouble("porcentajeDescuento", 0.0));
+                String tipoCondicion = descuento.optString("tipoCondicion", "").trim();
+                if (porcentaje > 0 && tipoCondicion.equals("CantidadBase")) {
+                    String valorDesdeStr = descuento.optString("valorDesde", "").trim();
+                    String valorHastaStr = descuento.optString("valorHasta", "").trim();
+                    int cantidadDesde = 0;
+                    int cantidadHasta = Integer.MAX_VALUE;
+                    if (!valorDesdeStr.isEmpty()) {
+                        try { cantidadDesde = Integer.parseInt(valorDesdeStr.trim()); } catch (Exception ignore) { cantidadDesde = 0; }
+                    }
+                    if (!valorHastaStr.isEmpty() && !valorHastaStr.equals("null")) {
+                        try { cantidadHasta = Integer.parseInt(valorHastaStr.trim()); } catch (Exception ignore) { cantidadHasta = Integer.MAX_VALUE; }
+                    }
+                    if (qty >= cantidadDesde && qty <= cantidadHasta) {
+                        porcentajeAplicado = porcentaje;
+                        if (cantidadHasta == Integer.MAX_VALUE) {
+                            rangoAplicado = "Desde " + cantidadDesde + " unidades";
+                        } else {
+                            rangoAplicado = cantidadDesde + " - " + cantidadHasta + " unidades";
+                        }
+                        tipoCondicionAplicado = "Por cantidad";
+                        break;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            porcentajeAplicado = descuentoPorcentaje;
+        }
+        
+        // Calcular valores
+        double ahorroTotal = 0;
+        double totalConDescuento = valorVenta;
+        if (porcentajeAplicado > 0) {
+            ahorroTotal = valorVenta * (porcentajeAplicado / 100.0);
+            totalConDescuento = valorVenta - ahorroTotal;
+        }
+
+        double porcentajeLabel = porcentajeAplicado;
+        
+        java.text.DecimalFormat df = new java.text.DecimalFormat("#0.00");
+        java.text.DecimalFormat dfPorcentaje = new java.text.DecimalFormat("#0.#"); // Muestra decimales solo cuando existen
+        
+        // Mostrar elementos visuales
+        binding.vpDiscountPercentLabel.setVisibility(View.VISIBLE);
+        binding.vpDiscountSubtotal.setVisibility(View.VISIBLE);
+        binding.vpDiscountTotal.setVisibility(View.VISIBLE);
+        binding.vpDiscountConditionType.setVisibility(View.VISIBLE);
+        
+        // Actualizar tipo de condición
+        binding.vpDiscountConditionType.setText(tipoCondicionAplicado.isEmpty() ? "Por valor" : tipoCondicionAplicado);
+        
+        // Actualizar porcentaje con diseño destacado - mostrar el porcentaje de la regla aplicable (no el promedio efectivo)
+        binding.vpDiscountPercentLabel.setText(dfPorcentaje.format(porcentajeLabel) + "%");
+        
+        // Actualizar montos
+        binding.vpDiscountSubtotal.setText("S/ " + df.format(valorVenta));
+        binding.vpDiscountTotal.setText("S/ " + df.format(totalConDescuento));
+        
+        // Mostrar ahorro con diseño mejorado
+        if (ahorroTotal > 0.0) {
+            binding.vpDiscountSavings.setVisibility(View.VISIBLE);
+            String mensajeAhorro = "💰 ¡AHORRAS S/ " + df.format(ahorroTotal) + "!";
+            if (!rangoAplicado.isEmpty()) {
+                mensajeAhorro += "\n" + rangoAplicado + " → " + dfPorcentaje.format(porcentajeLabel) + "% descuento";
+            }
+            if (descuentoIdSeleccionado != null) {
+                mensajeAhorro += "\nIDRegla: " + descuentoIdSeleccionado;
+            }
+            binding.vpDiscountSavings.setText(mensajeAhorro);
+            
+            // Mostrar barra de progreso si hay ahorro
+            binding.vpDiscountProgress.setVisibility(View.VISIBLE);
+            binding.vpDiscountProgress.setProgress(Math.min((int)Math.round(porcentajeLabel), 100));
+        } else {
+            binding.vpDiscountSavings.setVisibility(View.GONE);
+            binding.vpDiscountProgress.setVisibility(View.GONE);
+            // Si no hay descuento aplicable, ocultar también el tipo de condición
+            if (porcentajeAplicado == 0) {
+                binding.vpDiscountConditionType.setVisibility(View.GONE);
+            }
+        }
+    }
+
     // Método de aplicarBonificacion desde cache eliminado al revertir el sistema de cache
 
     private void actualizarBonificacionDinamica() {
@@ -570,35 +950,33 @@ private String bonusImagenUrlObsequio = "";
         }
     
         // Progreso hacia el siguiente obsequio (en unidades reales)
-        if (stepUnidades > 0) {
-            int restoUnidades = qtyUnidades % stepUnidades;
-            int faltanUnidades = restoUnidades == 0 ? (qtyUnidades > 0 ? stepUnidades : stepUnidades) : (stepUnidades - restoUnidades);
-            // Valor de progreso: cercanía en unidades al siguiente obsequio
-            int progresoActualUnidades = (restoUnidades == 0 && qtyUnidades > 0) ? stepUnidades : restoUnidades;
-            binding.vpBonusProgress.setMax(stepUnidades);
-            binding.vpBonusProgress.setProgress(progresoActualUnidades);
-    
-            if (faltanUnidades > 0) {
-                binding.vpBonusNextHint.setText("Faltan " + faltanUnidades + " unidades para otro obsequio.");
-            } else {
-                binding.vpBonusNextHint.setText("");
-            }
-    
-            // Colores dinámicos según cercanía
-            float ratio = stepUnidades > 0 ? ((float) progresoActualUnidades / (float) stepUnidades) : 0f;
-            int color;
-            if (ratio >= 0.8f) {
-                color = getResources().getColor(android.R.color.holo_orange_dark);
-            } else if (ratio >= 0.4f) {
-                color = getResources().getColor(android.R.color.holo_green_dark);
-            } else {
-                color = getResources().getColor(android.R.color.darker_gray);
-            }
-            binding.vpBonusProgress.setProgressTintList(ColorStateList.valueOf(color));
-            binding.vpBonusNextHint.setTextColor(color);
-            binding.vpBonusDynamicCount.setTextColor(color);
+        int restoUnidades = qtyUnidades % stepUnidades;
+        int faltanUnidades = restoUnidades == 0 ? (stepUnidades) : (stepUnidades - restoUnidades);
+        // Valor de progreso: cercanía en unidades al siguiente obsequio
+        int progresoActualUnidades = (restoUnidades == 0 && qtyUnidades > 0) ? stepUnidades : restoUnidades;
+        binding.vpBonusProgress.setMax(stepUnidades);
+        binding.vpBonusProgress.setProgress(progresoActualUnidades);
+
+        if (faltanUnidades > 0) {
+            binding.vpBonusNextHint.setText("Faltan " + faltanUnidades + " unidades para otro obsequio.");
+        } else {
+            binding.vpBonusNextHint.setText("");
         }
-    
+
+        // Colores dinámicos según cercanía
+        float ratio = (float) progresoActualUnidades / (float) stepUnidades;
+        int color;
+        if (ratio >= 0.8f) {
+            color = getResources().getColor(android.R.color.holo_orange_dark);
+        } else if (ratio >= 0.4f) {
+            color = getResources().getColor(android.R.color.holo_green_dark);
+        } else {
+            color = getResources().getColor(android.R.color.darker_gray);
+        }
+        binding.vpBonusProgress.setProgressTintList(ColorStateList.valueOf(color));
+        binding.vpBonusNextHint.setTextColor(color);
+        binding.vpBonusDynamicCount.setTextColor(color);
+
         // Animación suave si aumentan los obsequios
         if (totalRegalos > ultimoTotalRegalos) {
             try {

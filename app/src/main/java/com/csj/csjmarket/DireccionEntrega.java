@@ -457,6 +457,8 @@ public class DireccionEntrega extends AppCompatActivity implements itemDireccion
                 productoItem.setPrecio(item.getPrecio());
                 productoItem.setTotal(item.getTotal());
                 productoItem.setTieneBono(item.isTieneBonificacion());
+                productoItem.setTieneDescuento(item.isTieneDescuento());
+                try { productoItem.setIdDefinicionDescuento(item.getIdDefinicionDescuento()); } catch (Exception ignore) {}
                 
                 productosItems.add(productoItem);
             }

@@ -15,9 +15,9 @@ android {
     defaultConfig {
         applicationId "com.csj.csjmarket"
         minSdk 28
-        targetSdk 35
-        versionCode 132
-        versionName "2.7.1"
+        targetSdk 36
+        versionCode 137
+        versionName "2.33"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

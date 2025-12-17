@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/de_txtTitulo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Dirección de empresa"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:paddingBottom="8dp" />
+
+    <TextView
+        android:id="@+id/de_txtDireccion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="16sp"
+        android:paddingBottom="4dp" />
+
+    <TextView
+        android:id="@+id/de_txtDistrito"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="14sp"
+        android:textColor="#616161"
+        android:paddingBottom="12dp" />
+
+    <TextView
+        android:id="@+id/de_txtPregunta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="¿Desea usar esta dirección para la entrega?"
+        android:textSize="14sp"
+        android:paddingBottom="16dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/de_btnUsarEmpresa"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Usar dirección de empresa"
+            android:textAllCaps="false"
+            android:minHeight="48dp"
+            android:backgroundTint="@color/secondary"
+            android:textColor="@color/white" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/de_btnUsarSeleccionada"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Usar dirección seleccionada"
+            android:textAllCaps="false"
+            android:minHeight="48dp"
+            android:layout_marginTop="8dp" />
+    </LinearLayout>
+</LinearLayout>

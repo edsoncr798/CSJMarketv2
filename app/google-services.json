@@ -46,6 +46,14 @@
           }
         },
         {
+          "client_id": "559809427977-d8mg1jmnb6gel5jkb4c6dsg3ts8a3dts.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.csj.csjmarket",
+            "certificate_hash": "8c2161c8a05d32b9c2df43aa15db19cb6e26555f"
+          }
+        },
+        {
           "client_id": "559809427977-s2sj773qcoka3ovul6u007m3vj6lnqi4.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

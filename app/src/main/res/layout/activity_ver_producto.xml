@@ -38,14 +38,21 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical">
 
-                <ImageView
-                    android:id="@+id/vp_ImagenProducto"
-                    android:layout_width="280dp"
-                    android:layout_height="280dp"
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:layout_margin="10dp"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/default_image" />
+                    android:layout_margin="10dp">
+
+                    <ImageView
+                        android:id="@+id/vp_ImagenProducto"
+                        android:layout_width="280dp"
+                        android:layout_height="280dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/default_image" />
+
+                    
+                </FrameLayout>
 
                 <LinearLayout
                     android:id="@+id/seccionUnidades"
@@ -55,29 +62,35 @@
                     android:orientation="horizontal"
                     android:visibility="gone">
 
-                    <ImageButton
+                    <Button
                         android:id="@+id/vp_btnUnidad"
-                        android:layout_width="120dp"
-                        android:layout_height="120dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minWidth="120dp"
+                        android:minHeight="48dp"
                         android:layout_marginRight="10dp"
                         android:background="@drawable/estilo_boton2"
                         android:elevation="5dp"
                         android:foreground="?android:attr/selectableItemBackgroundBorderless"
-                        android:padding="5dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/unidad" />
+                        android:paddingLeft="16dp"
+                        android:paddingRight="16dp"
+                        android:text="Unidad"
+                        android:textStyle="bold" />
 
-                    <ImageButton
+                    <Button
                         android:id="@+id/vp_btnPaquete"
-                        android:layout_width="120dp"
-                        android:layout_height="120dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minWidth="120dp"
+                        android:minHeight="48dp"
                         android:layout_marginLeft="10dp"
                         android:background="@drawable/estilo_boton1"
                         android:elevation="5dp"
                         android:foreground="?android:attr/selectableItemBackgroundBorderless"
-                        android:padding="15dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/caja" />
+                        android:paddingLeft="16dp"
+                        android:paddingRight="16dp"
+                        android:text="Pack"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
                 <androidx.cardview.widget.CardView
@@ -129,6 +142,20 @@
                                 android:textAlignment="center"
                                 android:textSize="24sp"
                                 android:textStyle="bold"
+                                android:visibility="gone"/>
+                            <TextView
+                                android:id="@+id/vp_cajaBadge"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="8dp"
+                                android:paddingLeft="8dp"
+                                android:paddingRight="8dp"
+                                android:paddingTop="2dp"
+                                android:paddingBottom="2dp"
+                                android:text="Mejor precio por caja"
+                                android:textSize="11sp"
+                                android:textColor="@android:color/white"
+                                android:background="@drawable/bg_badge_bonus"
                                 android:visibility="gone"/>
                         </LinearLayout>
 
@@ -194,6 +221,18 @@
                             </LinearLayout>
 
                         </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/vp_cajaSavings"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text=""
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/holo_green_dark"
+                            android:textAlignment="center"
+                            android:layout_marginTop="4dp"
+                            android:visibility="gone"/>
 
                         <TextView
                             android:id="@+id/vp_txtStockDisponible"

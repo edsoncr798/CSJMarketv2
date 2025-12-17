@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Datos de factura"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:paddingBottom="8dp"/>
+
+    <EditText
+        android:id="@+id/df_doc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="RUC (11 dígitos)"
+        android:inputType="number"
+        android:maxLength="11"/>
+
+    <EditText
+        android:id="@+id/df_nombre"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Razón social"
+        android:inputType="textCapWords"/>
+
+    <EditText
+        android:id="@+id/df_direccion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Dirección"
+        android:inputType="textCapWords"/>
+
+    <EditText
+        android:id="@+id/df_distrito"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Ubigeo distrito (código)"
+        android:inputType="number"
+        android:visibility="gone"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="12dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/df_btnEliminar"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Eliminar"
+            android:textAllCaps="false"
+            android:minHeight="48dp"
+            android:textColor="@color/colorAccent"
+            android:visibility="gone"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/df_btnCancelar"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Cancelar"
+            android:textAllCaps="false"
+            android:minHeight="48dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/df_btnConfirmar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Confirmar"
+            android:textAllCaps="false"
+            android:minHeight="48dp"
+            android:backgroundTint="@color/secondary"
+            android:textColor="@color/white"/>
+    </LinearLayout>
+
+</LinearLayout>

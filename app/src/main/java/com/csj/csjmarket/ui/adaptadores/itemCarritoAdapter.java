@@ -177,13 +177,13 @@ public class itemCarritoAdapter extends RecyclerView.Adapter<itemCarritoAdapter.
             }
             // actualizar estado del botón aumentar
             try {
-                int disponibleActual = getDisponible(carrito.get(holder.getAdapterPosition()).getIdProducto());
+                int disponibleActual = getMaxAllowedForItem(carrito.get(holder.getAdapterPosition()));
                 holder.btnAumentar.setEnabled(!esRegalo && cantidad < disponibleActual);
             } catch (Exception ignore) {}
         });
         holder.btnAumentar.setOnClickListener(view -> {
             cantidad = carrito.get(holder.getAdapterPosition()).getCantidad();
-            int disponible = getDisponible(carrito.get(holder.getAdapterPosition()).getIdProducto());
+            int disponible = getMaxAllowedForItem(carrito.get(holder.getAdapterPosition()));
             if (disponible <= 0) {
                 Toast.makeText(context, "Producto sin stock", Toast.LENGTH_SHORT).show();
                 return;
@@ -230,7 +230,7 @@ public class itemCarritoAdapter extends RecyclerView.Adapter<itemCarritoAdapter.
                     if (pos == RecyclerView.NO_POSITION) { isEditing[0] = false; return; }
                     MiCarrito item = carrito.get(pos);
                     String txt = s.toString().trim();
-                    int disponible = getDisponible(item.getIdProducto());
+                    int disponible = getMaxAllowedForItem(item);
                     if (txt.isEmpty()) {
                         isEditing[0] = false;
                         return;
@@ -411,13 +411,25 @@ public class itemCarritoAdapter extends RecyclerView.Adapter<itemCarritoAdapter.
         notifyItemChanged(position);
     }
 
-    private int getDisponible(int idProducto) {
+    private int getDisponibleUnidades(int idProducto) {
         if (stockMap != null) {
             StockInfo info = stockMap.get(idProducto);
             if (info != null) {
                 return Math.max(info.getStockDisponible(), 0);
             }
         }
-        return Integer.MAX_VALUE; // sin dato de stock, no limitar
+        return Integer.MAX_VALUE;
+    }
+
+    private int getMaxAllowedForItem(MiCarrito item) {
+        if (item == null) return 0;
+        int disponibleUnidades = getDisponibleUnidades(item.getIdProducto());
+        if (item.isEsBonificacion()) return disponibleUnidades;
+        int factor = 1;
+        try { factor = Math.max(item.getFactor(), 1); } catch (Exception ignore) {}
+        if (item.isEsCaja() && factor > 1 && disponibleUnidades != Integer.MAX_VALUE) {
+            return Math.max(disponibleUnidades / factor, 0);
+        }
+        return disponibleUnidades;
     }
 }

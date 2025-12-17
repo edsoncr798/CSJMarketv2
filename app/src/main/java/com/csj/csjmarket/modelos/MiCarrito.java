@@ -26,6 +26,7 @@ public class MiCarrito {
     private Integer idDefinicionDescuento; // id de la regla de descuento aplicada
     // Nuevo: factor de conversión del producto principal (p.ej. 1 tira = 12 unidades)
     private Integer factor;
+    private boolean esCaja;
 
     public Integer getIdProducto() {
         return idProducto;
@@ -197,5 +198,13 @@ public class MiCarrito {
 
     public void setFactor(Integer factor) {
         this.factor = factor;
+    }
+
+    public boolean isEsCaja() {
+        return esCaja;
+    }
+
+    public void setEsCaja(boolean esCaja) {
+        this.esCaja = esCaja;
     }
 }

@@ -1,8 +1,10 @@
 package com.csj.csjmarket;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -66,6 +68,14 @@ private String descuentoFechaFin = "";
 private org.json.JSONArray descuentosArrayCompleto = null; // Para almacenar todos los descuentos
 private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
 
+// Venta por caja (wholesale)
+private boolean modoCaja = false;
+private boolean cajaDisponible = false;
+private int cajaUnidadId = 0;
+private String cajaUnidadDesc = "";
+private int cajaFactor = 1;
+private double cajaPrecio = 0.0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -119,15 +129,21 @@ private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
         binding.vpNombreProducto.setText(Ayudas.capitalize(producto.getNombre()));
         binding.vpTxtUnidad.setText("S/ " + producto.getPrecioUnidadBase() + " x " + producto.getUnidadBase());
         binding.vpTxtPrecio.setText(producto.getUnidadBase());
+        try { binding.vpCajaBadge.setVisibility(View.GONE); } catch (Exception ignore) {}
+        try { binding.vpCajaSavings.setVisibility(View.GONE); } catch (Exception ignore) {}
         Glide.with(this)
                 .load(getString(R.string.connection) + "/imagenes/" + producto.getCodigo() + ".jpg")
                 .placeholder(R.drawable.default_image)
                 .into(binding.vpImagenProducto);
+        try { binding.vpBtnUnidad.setText(producto.getUnidadBase()); } catch (Exception ignore) {}
 
         // Mostrar stock disponible real en la vista de cantidad
         binding.vpTxtStockDisponible.setText("Stock: " + stockDisponibleReal);
         // Mostrar código del producto debajo del stock
         binding.vpTxtCodigoProducto.setText("Código: " + producto.getCodigo());
+
+        // Cargar precio por caja (wholesale)
+        cargarPrecioCaja(producto.getId());
 
         // Solicitar bonificación: solo si el producto indica bonificación
         if (producto != null) {
@@ -162,7 +178,7 @@ private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
                 binding.vpTxtCantidad.setText(cantidad.toString());
             }else {
                 cantidad = Integer.parseInt(binding.vpTxtCantidad.getText().toString());
-                if (cantidad >= stockDisponibleReal) {
+                if (cantidad >= getMaxQtyAllowed()) {
                     mostrarMaximoStock();
                 } else {
                     cantidad++;
@@ -215,8 +231,9 @@ private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
                     binding.vpTxtCantidad.setText(cantidad.toString());
                 }
 
-                if (cantidad > stockDisponibleReal) {
-                    cantidad = Math.max(stockDisponibleReal, 0);
+                int maxQty = getMaxQtyAllowed();
+                if (cantidad > maxQty) {
+                    cantidad = Math.max(maxQty, 0);
                     binding.vpTxtCantidad.setText(cantidad.toString());
                     mostrarMaximoStock();
                 }
@@ -228,7 +245,7 @@ private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
         binding.vpBtnComprar.setOnClickListener(view -> {
             // Validación de stock antes de agregar
             int qty = cantidad != null ? cantidad : 0;
-            if (stockDisponibleReal <= 0) {
+            if (getMaxQtyAllowed() <= 0) {
                 mostrarSinStock();
                 return;
             }
@@ -236,30 +253,43 @@ private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
                 Toast.makeText(this, "Ingrese una cantidad válida", Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (qty > stockDisponibleReal) {
+            if (qty > getMaxQtyAllowed()) {
                 mostrarMaximoStock();
                 return;
             }
 
             MiCarrito miCarritoItem = new MiCarrito();
             miCarritoItem.setIdProducto(producto.getId());
-            miCarritoItem.setIdUnidad(producto.getIdUnidadBase());
-            miCarritoItem.setNombre(producto.getNombre());
-            miCarritoItem.setUnidad(producto.getUnidadBase());
-            miCarritoItem.setCantidad(qty);
-            miCarritoItem.setPrecio(producto.getPrecioUnidadBase());
-            miCarritoItem.setTotal(producto.getPrecioUnidadBase() * qty);
+            // Unidad/caja
+            if (modoCaja && cajaDisponible) {
+                miCarritoItem.setIdUnidad(cajaUnidadId);
+                miCarritoItem.setNombre(producto.getNombre());
+                miCarritoItem.setUnidad(cajaUnidadDesc != null && !cajaUnidadDesc.isEmpty() ? cajaUnidadDesc : "CAJA");
+                miCarritoItem.setCantidad(qty);
+                miCarritoItem.setPrecio(cajaPrecio);
+                miCarritoItem.setTotal(cajaPrecio * qty);
+                miCarritoItem.setEsCaja(true);
+            } else {
+                miCarritoItem.setIdUnidad(producto.getIdUnidadBase());
+                miCarritoItem.setNombre(producto.getNombre());
+                miCarritoItem.setUnidad(producto.getUnidadBase());
+                miCarritoItem.setCantidad(qty);
+                miCarritoItem.setPrecio(producto.getPrecioUnidadBase());
+                miCarritoItem.setTotal(producto.getPrecioUnidadBase() * qty);
+                miCarritoItem.setEsCaja(false);
+            }
             miCarritoItem.setCodigo(producto.getCodigo());
                 miCarritoItem.setPeso(producto.getPeso());
                 miCarritoItem.setPesoTotal(producto.getPeso() * qty);
-                miCarritoItem.setTieneBonificacion(producto.isTieneBonificacion());
+                // Bonificación solo aplica si NO es venta por caja
+                miCarritoItem.setTieneBonificacion(producto.isTieneBonificacion() && !modoCaja);
                 try { miCarritoItem.setTieneDescuento(producto.isTieneDescuento()); } catch (Exception ignore) {}
                 try { miCarritoItem.setIdDefinicionDescuento(descuentoIdSeleccionado); } catch (Exception ignore) {}
                 // Guardar factor del producto para cálculos en carrito
-                try { miCarritoItem.setFactor(Math.max(producto.getFactor(), 1)); } catch (Exception ignore) { miCarritoItem.setFactor(1); }
+                try { miCarritoItem.setFactor(Math.max(modoCaja && cajaDisponible ? cajaFactor : producto.getFactor(), 1)); } catch (Exception ignore) { miCarritoItem.setFactor(1); }
             // Persistir reglas de bonificación en el producto principal (para futuras sincronizaciones)
             try {
-                if (bonusActivo && bonusStepUnidades > 0 && bonusCantidadPorPaso > 0) {
+                if (!modoCaja && bonusActivo && bonusStepUnidades > 0 && bonusCantidadPorPaso > 0) {
                     miCarritoItem.setBonusStepUnidades(bonusStepUnidades);
                     miCarritoItem.setBonusCantidadPorPaso(bonusCantidadPorPaso);
                     miCarritoItem.setBonusNombreObsequio(bonusNombreObsequio);
@@ -281,12 +311,12 @@ private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
                             && item.getIdUnidad() != null && item.getIdUnidad().equals(producto.getIdUnidadBase())) {
                         int nuevaCantidad = (item.getCantidad() != null ? item.getCantidad() : 0) + qty;
                         item.setCantidad(nuevaCantidad);
-                        Double precioUnit = (item.getPrecio() != null ? item.getPrecio() : producto.getPrecioUnidadBase());
+                        Double precioUnit = (item.getPrecio() != null ? item.getPrecio() : (modoCaja && cajaDisponible ? cajaPrecio : producto.getPrecioUnidadBase()));
                         Double pesoUnit = (item.getPeso() != null ? item.getPeso() : producto.getPeso());
                         item.setTotal(precioUnit * nuevaCantidad);
                         item.setPesoTotal(pesoUnit * nuevaCantidad);
                         // Asegurar factor definido para sincronización de regalos en carrito
-                        try { if (item.getFactor() == null || item.getFactor() <= 0) item.setFactor(Math.max(producto.getFactor(), 1)); } catch (Exception ignore) {}
+                        try { if (item.getFactor() == null || item.getFactor() <= 0) item.setFactor(Math.max(modoCaja && cajaDisponible ? cajaFactor : producto.getFactor(), 1)); } catch (Exception ignore) {}
                         merged = true;
                         break;
                     }
@@ -301,36 +331,13 @@ private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
 
             // Agregar ítems de bonificación (regalo) si aplica
             try {
-                if (bonusActivo && bonusHayStock && bonusStepUnidades > 0 && bonusCantidadPorPaso > 0) {
+                if (!modoCaja && bonusActivo && bonusHayStock && bonusStepUnidades > 0 && bonusCantidadPorPaso > 0) {
                     int factor = Math.max(producto != null ? producto.getFactor() : 1, 1);
                     int qtyUnidades = qty * factor;
                     int pasos = qtyUnidades / bonusStepUnidades;
                     int totalRegalos = pasos * bonusCantidadPorPaso;
                     if (totalRegalos > 0) {
-                        MiCarrito regaloItem = new MiCarrito();
-                        regaloItem.setIdProducto(0);
-                        regaloItem.setIdUnidad(producto.getIdUnidadBase());
-                        regaloItem.setNombre(bonusNombreObsequio != null && !bonusNombreObsequio.isEmpty() ? bonusNombreObsequio : "Producto de bonificación");
-                        regaloItem.setUnidad("GRATIS");
-                        regaloItem.setCantidad(totalRegalos);
-                        regaloItem.setPrecio(0.0);
-                        regaloItem.setTotal(0.0);
-                        // Usar código/URL real del obsequio si viene del API
-                        regaloItem.setCodigoProductoObsequiado(bonusCodigoObsequio);
-                        regaloItem.setImagenUrlObsequio(bonusImagenUrlObsequio);
-                        if (bonusCodigoObsequio != null && !bonusCodigoObsequio.trim().isEmpty()) {
-                            regaloItem.setCodigo(bonusCodigoObsequio);
-                        } else {
-                            regaloItem.setCodigo("regalo");
-                        }
-                        regaloItem.setPeso(0.0);
-                        regaloItem.setPesoTotal(0.0);
-                        regaloItem.setEsBonificacion(true);
-                        // vincular con producto principal y reglas
-                        regaloItem.setIdProductoPrincipal(producto.getId());
-                        regaloItem.setBonusStepUnidades(bonusStepUnidades);
-                        regaloItem.setBonusCantidadPorPaso(bonusCantidadPorPaso);
-                        regaloItem.setBonusNombreObsequio(bonusNombreObsequio);
+                        MiCarrito regaloItem = getMiCarrito(totalRegalos);
                         miCarrito.add(regaloItem);
                     }
                 }
@@ -349,6 +356,35 @@ private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
         binding.vpBtnRegresar.setOnClickListener(view -> {
             finish();
         });
+    }
+
+    @NonNull
+    private MiCarrito getMiCarrito(int totalRegalos) {
+        MiCarrito regaloItem = new MiCarrito();
+        regaloItem.setIdProducto(0);
+        regaloItem.setIdUnidad(producto.getIdUnidadBase());
+        regaloItem.setNombre(bonusNombreObsequio != null && !bonusNombreObsequio.isEmpty() ? bonusNombreObsequio : "Producto de bonificación");
+        regaloItem.setUnidad("GRATIS");
+        regaloItem.setCantidad(totalRegalos);
+        regaloItem.setPrecio(0.0);
+        regaloItem.setTotal(0.0);
+        // Usar código/URL real del obsequio si viene del API
+        regaloItem.setCodigoProductoObsequiado(bonusCodigoObsequio);
+        regaloItem.setImagenUrlObsequio(bonusImagenUrlObsequio);
+        if (bonusCodigoObsequio != null && !bonusCodigoObsequio.trim().isEmpty()) {
+            regaloItem.setCodigo(bonusCodigoObsequio);
+        } else {
+            regaloItem.setCodigo("regalo");
+        }
+        regaloItem.setPeso(0.0);
+        regaloItem.setPesoTotal(0.0);
+        regaloItem.setEsBonificacion(true);
+        // vincular con producto principal y reglas
+        regaloItem.setIdProductoPrincipal(producto.getId());
+        regaloItem.setBonusStepUnidades(bonusStepUnidades);
+        regaloItem.setBonusCantidadPorPaso(bonusCantidadPorPaso);
+        regaloItem.setBonusNombreObsequio(bonusNombreObsequio);
+        return regaloItem;
     }
 
     private void cargarBonificacion(int idProducto) {
@@ -406,8 +442,8 @@ private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
                 binding.vpBonusProgress.setVisibility(View.VISIBLE);
 
                 // Mensaje combinado
-                String mensajeFull = (mensajePromocional != null ? mensajePromocional.replace("`", "").trim() : "");
-                if (cantidadObsequiado > 0 && nombreProductoObsequiado != null && !nombreProductoObsequiado.trim().isEmpty()) {
+                String mensajeFull = mensajePromocional.replace("`", "").trim();
+                if (!nombreProductoObsequiado.trim().isEmpty()) {
                     mensajeFull = (mensajeFull.isEmpty() ? "" : (mensajeFull + " ")) + "llevate " + cantidadObsequiado + " " + nombreProductoObsequiado.trim();
                 }
                 binding.vpBonusMessage.setText(mensajeFull);
@@ -416,7 +452,7 @@ private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
                 String unidadLabel = (producto != null && producto.getUnidadBase() != null && !producto.getUnidadBase().trim().isEmpty()) ? producto.getUnidadBase().trim() : "unidades";
                 int factor = (producto != null) ? Math.max(producto.getFactor(), 1) : 1;
                 // Convertir porCada a unidades base (ej. tiras) si factor > 1
-                double porCadaBase = factor > 0 ? (porCada / factor) : porCada;
+                double porCadaBase = porCada / factor;
                 String porCadaBaseFmt;
                 if (Math.abs(porCadaBase - Math.round(porCadaBase)) < 0.0001) {
                     porCadaBaseFmt = String.valueOf((int) Math.round(porCadaBase));
@@ -431,7 +467,7 @@ private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
                 binding.vpBonusStock.setText(hayStockBonificacion ? "Stock disponible para bonificación" : "Sin stock para obsequio");
 
                 // Imagen del producto obsequiado
-                if (imagenProducto != null && !imagenProducto.trim().isEmpty()) {
+                if (!imagenProducto.trim().isEmpty()) {
                     String urlImg = imagenProducto.replace("`", "").trim();
                     binding.vpBonusImage.setVisibility(View.VISIBLE);
                     Glide.with(this)
@@ -444,42 +480,7 @@ private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
                 }
 
                 // Fechas amigables
-                java.util.Locale localeEs = new java.util.Locale("es", "ES");
-                String inicioFmt = "";
-                String finFmt = "";
-                String[] patrones = new String[]{"yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd"};
-                if (!fechaInicio.isEmpty()) {
-                    for (String p : patrones) {
-                        try {
-                            java.text.SimpleDateFormat in = new java.text.SimpleDateFormat(p, java.util.Locale.US);
-                            in.setLenient(true);
-                            java.util.Date d = in.parse(fechaInicio);
-                            java.text.SimpleDateFormat out = new java.text.SimpleDateFormat("d 'de' MMMM 'de' yyyy", localeEs);
-                            inicioFmt = out.format(d);
-                            break;
-                        } catch (Exception ignore) {}
-                    }
-                }
-                if (!fechaFin.isEmpty()) {
-                    for (String p : patrones) {
-                        try {
-                            java.text.SimpleDateFormat in = new java.text.SimpleDateFormat(p, java.util.Locale.US);
-                            in.setLenient(true);
-                            java.util.Date d = in.parse(fechaFin);
-                            java.text.SimpleDateFormat out = new java.text.SimpleDateFormat("d 'de' MMMM 'de' yyyy", localeEs);
-                            finFmt = out.format(d);
-                            break;
-                        } catch (Exception ignore) {}
-                    }
-                }
-                String vigenciaText = "";
-                if (!inicioFmt.isEmpty() && !finFmt.isEmpty()) {
-                    vigenciaText = "Válido del " + inicioFmt + " al " + finFmt;
-                } else if (!inicioFmt.isEmpty()) {
-                    vigenciaText = "Válido desde " + inicioFmt;
-                } else if (!finFmt.isEmpty()) {
-                    vigenciaText = "Válido hasta " + finFmt;
-                }
+                String vigenciaText = getVigenciaText(fechaInicio, fechaFin);
                 binding.vpBonusValidity.setText(vigenciaText);
 
                 // Variables para cálculo dinámico
@@ -495,10 +496,16 @@ private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
                 bonusImagenUrlObsequio = imagenProducto;
                 ultimoTotalRegalos = 0;
 
-                binding.vpBonusContainer.setVisibility(View.VISIBLE);
+                if (!modoCaja) {
+                    binding.vpBonusContainer.setVisibility(View.VISIBLE);
+                } else {
+                    binding.vpBonusContainer.setVisibility(View.GONE);
+                }
                 binding.vpBonusProgress.setMax(bonusStepUnidades);
                 binding.vpBonusProgress.setProgress(0);
-                binding.vpBonusProgress.setVisibility(View.VISIBLE);
+                if (!modoCaja) {
+                    binding.vpBonusProgress.setVisibility(View.VISIBLE);
+                }
 
                 actualizarBonificacionDinamica();
             } catch (Exception e) {
@@ -516,6 +523,47 @@ private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
         req.setRetryPolicy(new DefaultRetryPolicy(9000, 2, 1));
         req.setShouldCache(false);
         Volley.newRequestQueue(this).add(req);
+    }
+
+    @NonNull
+    private static String getVigenciaText(String fechaInicio, String fechaFin) {
+        java.util.Locale localeEs = new java.util.Locale("es", "ES");
+        String inicioFmt = "";
+        String finFmt = "";
+        String[] patrones = new String[]{"yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd"};
+        if (!fechaInicio.isEmpty()) {
+            for (String p : patrones) {
+                try {
+                    java.text.SimpleDateFormat in = new java.text.SimpleDateFormat(p, java.util.Locale.US);
+                    in.setLenient(true);
+                    java.util.Date d = in.parse(fechaInicio);
+                    java.text.SimpleDateFormat out = new java.text.SimpleDateFormat("d 'de' MMMM 'de' yyyy", localeEs);
+                    inicioFmt = out.format(d);
+                    break;
+                } catch (Exception ignore) {}
+            }
+        }
+        if (!fechaFin.isEmpty()) {
+            for (String p : patrones) {
+                try {
+                    java.text.SimpleDateFormat in = new java.text.SimpleDateFormat(p, java.util.Locale.US);
+                    in.setLenient(true);
+                    java.util.Date d = in.parse(fechaFin);
+                    java.text.SimpleDateFormat out = new java.text.SimpleDateFormat("d 'de' MMMM 'de' yyyy", localeEs);
+                    finFmt = out.format(d);
+                    break;
+                } catch (Exception ignore) {}
+            }
+        }
+        String vigenciaText = "";
+        if (!inicioFmt.isEmpty() && !finFmt.isEmpty()) {
+            vigenciaText = "Válido del " + inicioFmt + " al " + finFmt;
+        } else if (!inicioFmt.isEmpty()) {
+            vigenciaText = "Válido desde " + inicioFmt;
+        } else if (!finFmt.isEmpty()) {
+            vigenciaText = "Válido hasta " + finFmt;
+        }
+        return vigenciaText;
     }
 
     private void cargarDescuento(int idProducto) {
@@ -588,7 +636,9 @@ private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
                         if (mensaje.isEmpty()) {
                             mensaje = "Descuento del " + porcentaje + "%";
                         }
-                        if (mensajesBuilder.length() > 0) mensajesBuilder.append("\n");
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                            if (!mensajesBuilder.isEmpty()) mensajesBuilder.append("\n");
+                        }
                         mensajesBuilder.append("• ").append(mensaje);
                         
                         // Agregar detalles del rango según el tipo de condición
@@ -629,7 +679,9 @@ private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
                 double precioActual = producto != null && producto.getPrecioUnidadBase() != null ? producto.getPrecioUnidadBase() : 0.0;
 
                 descuentoActivo = true;
-                descuentoMensaje = mensajesBuilder.length() > 0 ? mensajesBuilder.toString() : "Descuento disponible";
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                    descuentoMensaje = !mensajesBuilder.isEmpty() ? mensajesBuilder.toString() : "Descuento disponible";
+                }
                 descuentoPrecioAntes = precioAntes > 0.0 ? precioAntes : (producto != null ? (producto.getPrecioUnidadAntes() != null ? producto.getPrecioUnidadAntes() : 0.0) : 0.0);
                 descuentoPrecioActual = precioActual > 0.0 ? precioActual : (producto != null ? (producto.getPrecioUnidadBase() != null ? producto.getPrecioUnidadBase() : 0.0) : 0.0);
                 descuentoPorcentaje = maxPorcentaje;
@@ -648,52 +700,19 @@ private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
                 binding.vpDiscountMessage.setText(descuentoMensaje);
                 
                 // Mostrar detalles de rangos
-                if (detallesBuilder.length() > 0) {
-                    binding.vpDiscountDetail.setVisibility(View.VISIBLE);
-                    binding.vpDiscountDetail.setText(detallesBuilder.toString());
-                } else {
-                    binding.vpDiscountDetail.setVisibility(View.GONE);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                    if (!detallesBuilder.isEmpty()) {
+                        binding.vpDiscountDetail.setVisibility(View.VISIBLE);
+                        binding.vpDiscountDetail.setText(detallesBuilder.toString());
+                    } else {
+                        binding.vpDiscountDetail.setVisibility(View.GONE);
+                    }
                 }
 
                 // Actualizar la interfaz visual con los valores actuales
                 actualizarInterfazVisualDescuento();
 
-                java.util.Locale localeEs = new java.util.Locale("es", "ES");
-                String inicioFmt = "";
-                String finFmt = "";
-                String[] patrones = new String[]{"yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd"};
-                if (!descuentoFechaInicio.isEmpty()) {
-                    for (String p : patrones) {
-                        try {
-                            java.text.SimpleDateFormat in = new java.text.SimpleDateFormat(p, java.util.Locale.US);
-                            in.setLenient(true);
-                            java.util.Date d = in.parse(descuentoFechaInicio);
-                            java.text.SimpleDateFormat out = new java.text.SimpleDateFormat("d 'de' MMMM 'de' yyyy", localeEs);
-                            inicioFmt = out.format(d);
-                            break;
-                        } catch (Exception ignore) {}
-                    }
-                }
-                if (!descuentoFechaFin.isEmpty()) {
-                    for (String p : patrones) {
-                        try {
-                            java.text.SimpleDateFormat in = new java.text.SimpleDateFormat(p, java.util.Locale.US);
-                            in.setLenient(true);
-                            java.util.Date d = in.parse(descuentoFechaFin);
-                            java.text.SimpleDateFormat out = new java.text.SimpleDateFormat("d 'de' MMMM 'de' yyyy", localeEs);
-                            finFmt = out.format(d);
-                            break;
-                        } catch (Exception ignore) {}
-                    }
-                }
-                String vigenciaText = "";
-                if (!inicioFmt.isEmpty() && !finFmt.isEmpty()) {
-                    vigenciaText = "Válido del " + inicioFmt + " al " + finFmt;
-                } else if (!inicioFmt.isEmpty()) {
-                    vigenciaText = "Válido desde " + inicioFmt;
-                } else if (!finFmt.isEmpty()) {
-                    vigenciaText = "Válido hasta " + finFmt;
-                }
+                String vigenciaText = getVigenciaText(descuentoFechaInicio, descuentoFechaFin);
                 if (vigenciaText.isEmpty()) {
                     binding.vpDiscountValidity.setVisibility(View.GONE);
                 } else {
@@ -737,6 +756,133 @@ private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
         req.setRetryPolicy(new DefaultRetryPolicy(9000, 2, 1));
         req.setShouldCache(false);
         Volley.newRequestQueue(this).add(req);
+    }
+
+    private void cargarPrecioCaja(int idProducto) {
+        try {
+            String url = "https://api.comsanjuan.com:8443/api/products/wholesale/" + idProducto;
+            com.android.volley.toolbox.StringRequest req = new com.android.volley.toolbox.StringRequest(com.android.volley.Request.Method.GET, url, respStr -> {
+                try {
+                    Object parsed = new org.json.JSONTokener(respStr).nextValue();
+                    if (!(parsed instanceof org.json.JSONObject jo)) return;
+                    org.json.JSONArray data = jo.optJSONArray("data");
+                    if (data == null || data.length() == 0) return;
+                    org.json.JSONArray inner = data.optJSONArray(0);
+                    if (inner == null || inner.length() == 0) return;
+                    org.json.JSONObject p = inner.getJSONObject(0);
+
+                    cajaUnidadId = p.optInt("IDUnidadBase", 0);
+                    cajaUnidadDesc = p.optString("UnidadBase", "").trim();
+                    cajaFactor = p.optInt("Factor", 1);
+                    cajaPrecio = p.optDouble("PrecioUnidadBase", 0.0);
+                    cajaDisponible = (cajaUnidadId > 0) && (cajaPrecio > 0.0);
+
+                    if (cajaDisponible) {
+                        try { binding.seccionUnidades.setVisibility(android.view.View.VISIBLE); } catch (Exception ignore) {}
+                        try {
+                            int maxBoxes = Math.max(stockDisponibleReal / Math.max(cajaFactor, 1), 0);
+                            binding.vpBtnPaquete.setEnabled(maxBoxes > 0);
+                            binding.vpBtnPaquete.setAlpha(maxBoxes > 0 ? 1f : 0.5f);
+                            String label = (cajaUnidadDesc != null && !cajaUnidadDesc.isEmpty()) ? cajaUnidadDesc : "PACK";
+                            // Validar redundancia de texto "xFactor"
+                            if (label.toLowerCase().contains("x" + cajaFactor)) {
+                                binding.vpBtnPaquete.setText(label);
+                            } else {
+                                binding.vpBtnPaquete.setText(label + " x" + cajaFactor);
+                            }
+                            // Inicializar estilos de botones
+                            binding.vpBtnUnidad.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.secondary)));
+                            binding.vpBtnPaquete.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.grey)));
+                        } catch (Exception ignore) {}
+                        double normalUnit = producto.getPrecioUnidadBase() != null ? producto.getPrecioUnidadBase() : 0.0;
+                        double cajaUnit = cajaFactor > 0 ? (cajaPrecio / cajaFactor) : cajaPrecio;
+                        double ahorroUnit = Math.max(normalUnit - cajaUnit, 0.0);
+                        try {
+                            binding.vpCajaBadge.setVisibility(android.view.View.VISIBLE);
+                            if (ahorroUnit > 0) {
+                                String ahorroTxt = "Ahorro por unidad S/ " + new java.text.DecimalFormat("#0.00").format(ahorroUnit) + " (x" + cajaFactor + ")";
+                                binding.vpCajaSavings.setText(ahorroTxt);
+                                // Inicialmente oculto en modo unidad
+                                binding.vpCajaSavings.setVisibility(android.view.View.GONE);
+                            } else {
+                                binding.vpCajaSavings.setVisibility(android.view.View.GONE);
+                            }
+                        } catch (Exception ignore) {}
+                        int maxBoxes = Math.max(stockDisponibleReal / Math.max(cajaFactor, 1), 0);
+                        try {
+                            binding.vpBtnPaquete.setEnabled(maxBoxes > 0);
+                            binding.vpBtnPaquete.setAlpha(maxBoxes > 0 ? 1f : 0.5f);
+                        } catch (Exception ignore) {}
+                        try {
+                            binding.vpBtnUnidad.setOnClickListener(v -> {
+                                modoCaja = false;
+                                binding.vpTxtUnidad.setText("S/ " + producto.getPrecioUnidadBase() + " x " + producto.getUnidadBase());
+                                
+                                // Estilos de botones
+                                binding.vpBtnUnidad.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.secondary)));
+                                binding.vpBtnPaquete.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.grey)));
+                                
+                                // Ocultar ahorro en modo unidad
+                                binding.vpCajaSavings.setVisibility(android.view.View.GONE);
+                                
+                                // Mostrar bonificación si está activa
+                                if (bonusActivo) {
+                                    binding.vpBonusContainer.setVisibility(android.view.View.VISIBLE);
+                                }
+                                
+                                // Validar que la cantidad actual no exceda el stock máximo del nuevo modo
+                                int maxQty = getMaxQtyAllowed();
+                                if (cantidad > maxQty) {
+                                    cantidad = maxQty;
+                                    binding.vpTxtCantidad.setText(String.valueOf(cantidad));
+                                    mostrarMaximoStock();
+                                }
+                                
+                                verificarBotonIncremento();
+                            });
+                            binding.vpBtnPaquete.setOnClickListener(v -> {
+                                modoCaja = true;
+                                String label = (cajaUnidadDesc != null && !cajaUnidadDesc.isEmpty()) ? cajaUnidadDesc : "CAJA";
+                                binding.vpTxtUnidad.setText("S/ " + new java.text.DecimalFormat("#0.00").format(cajaPrecio) + " x " + label);
+                                
+                                // Estilos de botones
+                                binding.vpBtnUnidad.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.grey)));
+                                binding.vpBtnPaquete.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.secondary)));
+                                
+                                double nu = producto.getPrecioUnidadBase() != null ? producto.getPrecioUnidadBase() : 0.0;
+                                double cu = cajaFactor > 0 ? (cajaPrecio / cajaFactor) : cajaPrecio;
+                                double au = Math.max(nu - cu, 0.0);
+                                if (au > 0) {
+                                    String t = "Ahorro por unidad S/ " + new java.text.DecimalFormat("#0.00").format(au) + " (x" + cajaFactor + ")";
+                                    binding.vpCajaSavings.setText(t);
+                                    binding.vpCajaSavings.setVisibility(android.view.View.VISIBLE);
+                                } else {
+                                    binding.vpCajaSavings.setVisibility(android.view.View.GONE);
+                                }
+                                
+                                // Ocultar bonificación en modo caja
+                                binding.vpBonusContainer.setVisibility(android.view.View.GONE);
+                                
+                                // Validar que la cantidad actual no exceda el stock máximo del nuevo modo
+                                int maxQty = getMaxQtyAllowed();
+                                if (cantidad > maxQty) {
+                                    cantidad = maxQty;
+                                    binding.vpTxtCantidad.setText(String.valueOf(cantidad));
+                                    mostrarMaximoStock();
+                                }
+                                
+                                verificarBotonIncremento();
+                            });
+                        } catch (Exception ignore) {}
+                    }
+                } catch (Exception ignore) {}
+            }, err -> {
+                // ignorar errores silenciosamente; no bloquear la vista
+            });
+            req.setRetryPolicy(new com.android.volley.DefaultRetryPolicy(9000, 2, 1));
+            req.setShouldCache(false);
+            com.android.volley.toolbox.Volley.newRequestQueue(this).add(req);
+        } catch (Exception ignore) {}
     }
 
     private void actualizarDescuentoDinamico() {
@@ -995,15 +1141,24 @@ private Integer descuentoIdSeleccionado = null; // ID de la regla aplicada
     }
 
     private void mostrarMaximoStock() {
-        if (stockDisponibleReal > 0) {
-            Toast.makeText(this, "Stock máximo: " + stockDisponibleReal, Toast.LENGTH_SHORT).show();
+        int maxQty = getMaxQtyAllowed();
+        if (maxQty > 0) {
+            Toast.makeText(this, "Stock máximo: " + maxQty, Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(this, "Stock no disponible", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void verificarBotonIncremento() {
-        boolean habilitar = cantidad < stockDisponibleReal;
+        boolean habilitar = cantidad < getMaxQtyAllowed();
         binding.vpBtnAumentar.setEnabled(habilitar);
+    }
+
+    private int getMaxQtyAllowed() {
+        if (modoCaja && cajaDisponible) {
+            int f = Math.max(cajaFactor, 1);
+            return Math.max(stockDisponibleReal / f, 0);
+        }
+        return Math.max(stockDisponibleReal, 0);
     }
 }

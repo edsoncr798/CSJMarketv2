@@ -1,5 +1,7 @@
 package com.csj.csjmarket.modelos;
 
+import com.google.gson.annotations.SerializedName;
+
 public class ProductoItem {
     private int idCp;
     private int idCpInventario;
@@ -10,7 +12,12 @@ public class ProductoItem {
     private int cantidad;
     private double precio;
     private double total;
+    @SerializedName(value = "TieneBono", alternate = {"tieneBono"})
     private boolean tieneBono;
+    @SerializedName(value = "TieneDescuento", alternate = {"tieneDescuento"})
+    private boolean tieneDescuento;
+    @SerializedName(value = "IdDefinicionDescuento", alternate = {"idDefinicionDescuento", "IDDefinicionDescuento"})
+    private Integer idDefinicionDescuento;
 
     public void setIdCp(int idCp) {
         this.idCp = idCp;
@@ -55,5 +62,22 @@ public class ProductoItem {
     // NUEVO: Getter para tieneBono
     public boolean isTieneBono() {
         return tieneBono;
+    }
+
+    // NUEVO: setter/getter para tieneDescuento
+    public void setTieneDescuento(boolean tieneDescuento) {
+        this.tieneDescuento = tieneDescuento;
+    }
+
+    public boolean isTieneDescuento() {
+        return tieneDescuento;
+    }
+
+    public Integer getIdDefinicionDescuento() {
+        return idDefinicionDescuento;
+    }
+
+    public void setIdDefinicionDescuento(Integer idDefinicionDescuento) {
+        this.idDefinicionDescuento = idDefinicionDescuento;
     }
 }

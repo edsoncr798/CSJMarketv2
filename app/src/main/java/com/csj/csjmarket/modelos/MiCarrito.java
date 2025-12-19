@@ -22,8 +22,11 @@ public class MiCarrito {
     private String imagenUrlObsequio; // URL pública de imagen del producto obsequiado
     // Nuevo: flag del producto principal indicando si tiene bonificación disponible
     private boolean tieneBonificacion;
+    private boolean tieneDescuento;
+    private Integer idDefinicionDescuento; // id de la regla de descuento aplicada
     // Nuevo: factor de conversión del producto principal (p.ej. 1 tira = 12 unidades)
     private Integer factor;
+    private boolean esCaja;
 
     public Integer getIdProducto() {
         return idProducto;
@@ -123,6 +126,22 @@ public class MiCarrito {
         this.tieneBonificacion = tieneBonificacion;
     }
 
+    public boolean isTieneDescuento() {
+        return tieneDescuento;
+    }
+
+    public void setTieneDescuento(boolean tieneDescuento) {
+        this.tieneDescuento = tieneDescuento;
+    }
+
+    public Integer getIdDefinicionDescuento() {
+        return idDefinicionDescuento;
+    }
+
+    public void setIdDefinicionDescuento(Integer idDefinicionDescuento) {
+        this.idDefinicionDescuento = idDefinicionDescuento;
+    }
+
     // Relación con producto principal y reglas de bonificación
     public Integer getIdProductoPrincipal() {
         return idProductoPrincipal;
@@ -179,5 +198,13 @@ public class MiCarrito {
 
     public void setFactor(Integer factor) {
         this.factor = factor;
+    }
+
+    public boolean isEsCaja() {
+        return esCaja;
+    }
+
+    public void setEsCaja(boolean esCaja) {
+        this.esCaja = esCaja;
     }
 }

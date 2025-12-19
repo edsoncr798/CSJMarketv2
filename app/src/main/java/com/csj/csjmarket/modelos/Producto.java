@@ -28,6 +28,9 @@ public class Producto implements Serializable {
     @SerializedName(value = "TieneBonificacion", alternate = {"tieneBonificacion"})
     private boolean tieneBonificacion;
 
+    @SerializedName(value = "TieneDescuento", alternate = {"tieneDescuento"})
+    private boolean tieneDescuento;
+
     @SerializedName(value = "stockFisico", alternate = {"StockFisico"})
     private int stockFisico;
 
@@ -91,6 +94,10 @@ public class Producto implements Serializable {
         return tieneBonificacion;
     }
 
+    public boolean isTieneDescuento() {
+        return tieneDescuento;
+    }
+
     public int getStockFisico() {
         return stockFisico;
     }
@@ -117,5 +124,9 @@ public class Producto implements Serializable {
 
     public void setPrecioUnidadAntes(Double precioUnidadAntes) {
         this.precioUnidadAntes = precioUnidadAntes;
+    }
+
+    public void setTieneDescuento(boolean tieneDescuento) {
+        this.tieneDescuento = tieneDescuento;
     }
 }

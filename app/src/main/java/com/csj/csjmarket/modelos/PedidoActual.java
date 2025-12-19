@@ -6,6 +6,7 @@ public class PedidoActual {
     private double totalVenta;
     private double peso;
     private int tipoCp;
+    private String direccion;
 
     public void setIdPersona(int idPersona) {
         this.idPersona = idPersona;
@@ -25,5 +26,9 @@ public class PedidoActual {
 
     public void setTipoCp(int tipoCp) {
         this.tipoCp = tipoCp;
+    }
+
+    public void setDireccion(String direccion) {
+        this.direccion = direccion;
     }
 }

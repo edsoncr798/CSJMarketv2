@@ -66,7 +66,7 @@ public class ProductoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 .load(vh.itemView.getContext().getString(R.string.connection) + "/imagenes/" + productos.get(position).getCodigo() + ".jpg")
                 .placeholder(R.drawable.default_image)
                 .into(vh.ivFotoProducto);
-        vh.txtNombreProducto.setText(new Ayudas().capitalize(productos.get(position).getNombre()));
+        vh.txtNombreProducto.setText(Ayudas.capitalize(productos.get(position).getNombre()));
         DecimalFormat decimalFormat = new DecimalFormat("#0.00");
         Double precioActual = productos.get(position).getPrecioUnidadBase();
         Double precioAnterior = productos.get(position).getPrecioUnidadAntes();
@@ -116,6 +116,7 @@ public class ProductoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             // Ocultar el ícono de descuento y limpiar texto
             vh.txtDescuentoIcon.setText("");
             vh.txtDescuentoIcon.setVisibility(View.GONE);
+            vh.txtDescuentoBadge.setVisibility(View.GONE);
         }
 
         int disponibleUnidades = productos.get(position).getStockDisponible();
@@ -131,8 +132,12 @@ public class ProductoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             vh.txtBonusBadge.setText("PROMO");
         }
 
-        // Mostrar icono de descuento en la imagen si hay oferta
-        vh.txtDescuentoIcon.setVisibility(tieneDescuento ? View.VISIBLE : View.GONE);
+        boolean tieneDescuentoApi = productos.get(position).isTieneDescuento();
+        boolean mostrarDescuentoIcon = tieneDescuento || tieneDescuentoApi;
+        vh.txtDescuentoIcon.setVisibility(mostrarDescuentoIcon ? View.VISIBLE : View.GONE);
+        if (!tieneDescuento && tieneDescuentoApi) {
+            vh.txtDescuentoIcon.setText("DCTO.");
+        }
 
         vh.itemView.setOnClickListener(view -> {
             Intent intent = new Intent(vh.itemView.getContext(), VerProducto.class)
@@ -147,13 +152,13 @@ public class ProductoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     public static class ViewHolderProducto extends RecyclerView.ViewHolder {
-        private ImageView ivFotoProducto;
-        private TextView txtNombreProducto, txtPrecioProducto, txtDisponibilidad;
-        private TextView txtBonusBadge;
-        private TextView txtDescuentoIcon;
+        private final ImageView ivFotoProducto;
+        private final TextView txtNombreProducto, txtPrecioProducto, txtDisponibilidad;
+        private final TextView txtBonusBadge;
+        private final TextView txtDescuentoIcon;
 
-        private LinearLayout contenedorPreciosOferta;
-        private TextView txtPrecioAnterior, txtPrecioActual, txtDescuentoBadge;
+        private final LinearLayout contenedorPreciosOferta;
+        private final TextView txtPrecioAnterior, txtPrecioActual, txtDescuentoBadge;
 
         public ViewHolderProducto(@NonNull View itemView) {
             super(itemView);

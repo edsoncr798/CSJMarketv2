@@ -4,10 +4,12 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -27,7 +29,7 @@ public class SplashActivity extends AppCompatActivity {
     private static final int MAX_UPDATE_RETRIES = 3;
     private static final long SPLASH_DELAY_MS = 2000; // 2 segundos mínimo de splash
     // MODO DESARROLLO: poner en false antes de subir a producción
-    private static final boolean DEBUG_MODE = true;
+    private static final boolean DEBUG_MODE = false;
 
     private AppUpdateManager appUpdateManager;
     private ActivityResultLauncher<IntentSenderRequest> updateLauncher;
@@ -43,7 +45,16 @@ public class SplashActivity extends AppCompatActivity {
         Log.d(TAG, "=== SPLASH INICIADO ===");
         
         // Inicializar vistas y animaciones
-        splashHandler = new Handler();
+        splashHandler = new Handler(Looper.getMainLooper());
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                Log.d(TAG, "Botón atrás presionado en splash - ignorado");
+                // No hacemos nada para evitar salir del splash
+            }
+        });
+        
         android.view.View logo = findViewById(R.id.logo_image);
         android.view.View ring = findViewById(R.id.pulse_ring);
         android.view.View appName = findViewById(R.id.app_name_text);
@@ -274,11 +285,5 @@ public class SplashActivity extends AppCompatActivity {
         Log.d(TAG, "=== SPLASH DESTRUIDO ===");
     }
 
-    @Override
-    public void onBackPressed() {
-        // Prevenir que el usuario cierre el splash con el botón atrás
-        super.onBackPressed();
-        Log.d(TAG, "Botón atrás presionado en splash - ignorado");
-        // No hacer nada
-    }
+    
 }
